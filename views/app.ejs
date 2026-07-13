@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EDMS — <%= (page||'dashboard').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) %></title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--sidebar:#0f172a;--accent:#0d9488;--accent2:#14b8a6;--bg:#f1f5f9;--text:#0f172a;--muted:#64748b;--card:#fff;--radius:14px;--shadow:0 2px 14px rgba(15,23,42,.07)}
+*{box-sizing:border-box}body{margin:0;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+h1,h2,h3,.font-head{font-family:'Barlow Condensed',sans-serif}
+.sidebar{position:fixed;inset:0 auto 0 0;width:270px;background:var(--sidebar);display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+.brand{padding:20px;display:flex;gap:12px;align-items:center;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#0f766e,#2dd4bf);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-family:'Barlow Condensed',sans-serif}
+.brand-title{color:#fff;font-weight:800;font-size:18px;font-family:'Barlow Condensed',sans-serif;line-height:1}
+.brand-sub{color:rgba(255,255,255,.45);font-size:10px;letter-spacing:.5px}
+.nav-sec{padding:14px 12px 4px}.nav-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:1.4px;text-transform:uppercase;padding:0 8px;margin-bottom:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13px;font-weight:500;margin-bottom:2px}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}.nav-item.active{background:var(--accent);color:#fff}
+.nav-item i{width:16px;text-align:center;font-size:13px}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,.08)}
+.main{margin-left:270px;min-height:100vh}
+.topbar{height:64px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:50;gap:12px}
+.topbar h1{font-size:20px;font-weight:800;margin:0;font-family:'Barlow Condensed',sans-serif}
+.user-pill{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px 5px 5px}
+.user-pill img{width:30px;height:30px;border-radius:7px}
+.content{padding:22px}
+.cardx{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;border-left:4px solid #cbd5e1}
+.kpi .lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
+.kpi .val{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;line-height:1.1}
+.kpi .sub{font-size:10px;color:var(--muted)}
+.k-teal{border-color:#0d9488}.k-teal .val{color:#0d9488}
+.k-green{border-color:#16a34a}.k-green .val{color:#16a34a}
+.k-amber{border-color:#d97706}.k-amber .val{color:#d97706}
+.k-red{border-color:#dc2626}.k-red .val{color:#dc2626}
+.k-indigo{border-color:#6366f1}.k-indigo .val{color:#6366f1}
+.k-purple{border-color:#7c3aed}.k-purple .val{color:#7c3aed}
+.k-slate{border-color:#475569}.k-slate .val{color:#475569}
+.k-cyan{border-color:#0891b2}.k-cyan .val{color:#0891b2}
+.sec{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:var(--sidebar);color:#fff;padding:9px 11px;text-align:left;font-size:11px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase}
+.tbl td{padding:9px 11px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.tbl tr:nth-child(even){background:#f8fafc}.tbl tr:hover{background:#f0fdfa}
+.chip{display:inline-block;padding:2px 8px;border-radius:5px;background:#0f172a;color:#fff;font-size:10px;font-weight:800;font-family:'Barlow Condensed',sans-serif}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase}
+.btnx{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+.btnx:hover{background:#0f766e;color:#fff}
+.btno{background:transparent;color:var(--accent);border:1.5px solid var(--accent);border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+.btnd{background:#dc2626;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
+.btng{background:#16a34a;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
+.label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;display:block}
+.inp{width:100%;border:1.5px solid #e2e8f0;border-radius:9px;padding:9px 12px;font-size:13px;background:#f8fafc}
+.inp:focus{outline:none;border-color:var(--accent);background:#fff}
+.filter{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.alertok{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px}
+.importb{background:linear-gradient(135deg,#0f172a,#134e4a);border-radius:var(--radius);padding:18px;margin-bottom:16px;color:#fff;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.footer{text-align:center;padding:16px;font-size:11px;color:var(--muted)}
+@media(max-width:900px){.sidebar{width:220px}.main{margin-left:220px}}
+@media(max-width:700px){.sidebar{display:none}.main{margin-left:0}}
+@media print{.sidebar,.topbar,.filter,.importb,.no-print{display:none!important}.main{margin-left:0!important}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<%
+const SS={
+  'Approved':'background:#dcfce7;color:#15803d',
+  'Approved with Comments':'background:#d1fae5;color:#047857',
+  'Under Review':'background:#fef3c7;color:#92400e',
+  'Open':'background:#ccfbf1;color:#0f766e',
+  'Pending':'background:#ffedd5;color:#9a3412',
+  'Rejected':'background:#fee2e2;color:#991b1b',
+  'Closed':'background:#f1f5f9;color:#334155',
+  'Submitted':'background:#e0e7ff;color:#3730a3',
+  'Returned':'background:#fce7f3;color:#9d174d',
+  'Cancelled':'background:#e2e8f0;color:#475569',
+  'Draft':'background:#e0e7ff;color:#3730a3',
+  'Issued':'background:#dbeafe;color:#1e40af',
+  'Acknowledged':'background:#dcfce7;color:#15803d'
+};
+function sBadge(s){const st=SS[s]||'background:#e2e8f0;color:#334155';return `<span class="pill" style="${st}">${s||'—'}</span>`}
+function roleBadge(r){const m={super_admin:'#0f172a',admin:'#0f766e',document_controller:'#0369a1',reviewer:'#b45309',viewer:'#475569'};return `<span class="pill" style="background:${m[r]||'#64748b'};color:#fff">${(r||'').replace(/_/g,' ')}</span>`}
+function fmt(d){return d?new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—'}
+const pageTitle=(page||'dashboard').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+const b=branding||{};
+%>
+<div class="sidebar">
+  <div class="brand">
+    <% if(b.company_logo){ %><img src="/uploads/<%= b.company_logo %>" style="width:42px;height:42px;border-radius:10px;object-fit:contain;background:#fff"/><% } else { %><div class="brand-logo">ED</div><% } %>
+    <div><div class="brand-title"><%= b.company_name||'EDMS' %></div><div class="brand-sub"><%= b.project_name||'DOCUMENT CONTROL' %></div></div>
+  </div>
+  <div style="flex:1;overflow:auto;padding-bottom:8px">
+    <div class="nav-sec"><div class="nav-label">Overview</div>
+      <a class="nav-item <%= page==='dashboard'?'active':'' %>" href="/app?page=dashboard"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
+      <a class="nav-item <%= page==='weekly_summary'?'active':'' %>" href="/app?page=weekly_summary"><i class="fa-solid fa-calendar-week"></i>Weekly Summary</a>
+    </div>
+    <% if(canEditDocs || user.role==='reviewer' || user.role==='viewer'){ %>
+    <div class="nav-sec"><div class="nav-label">Documents</div>
+      <a class="nav-item <%= page==='document_register'?'active':'' %>" href="/app?page=document_register"><i class="fa-solid fa-folder-open"></i>Document Register</a>
+      <% if(canEditDocs){ %>
+      <a class="nav-item <%= page==='add_document'||page==='edit_document'?'active':'' %>" href="/app?page=add_document"><i class="fa-solid fa-plus-circle"></i>Add Document</a>
+      <a class="nav-item <%= page==='transmittals'||page==='create_transmittal'?'active':'' %>" href="/app?page=transmittals"><i class="fa-solid fa-paper-plane"></i>Transmittals</a>
+      <a class="nav-item <%= page==='revisions'?'active':'' %>" href="/app?page=revisions"><i class="fa-solid fa-code-branch"></i>Revision Log</a>
+      <% } %>
+    </div>
+    <% } %>
+    <% if(canEditDocs || user.role==='reviewer'){ %>
+    <div class="nav-sec"><div class="nav-label">Reports</div>
+      <a class="nav-item <%= page==='reports'?'active':'' %>" href="/app?page=reports"><i class="fa-solid fa-chart-bar"></i>Reports & Analytics</a>
+    </div>
+    <% } %>
+    <% if(canManageUsers){ %>
+    <div class="nav-sec"><div class="nav-label">Administration</div>
+      <a class="nav-item <%= page==='manage_users'?'active':'' %>" href="/app?page=manage_users"><i class="fa-solid fa-users"></i>Manage Users</a>
+      <a class="nav-item <%= page==='branding'?'active':'' %>" href="/app?page=branding"><i class="fa-solid fa-building"></i>Branding</a>
+      <a class="nav-item <%= page==='notifications'?'active':'' %>" href="/app?page=notifications"><i class="fa-solid fa-bell"></i>Notifications</a>
+    </div>
+    <% } %>
+    <div class="nav-sec"><div class="nav-label">Account</div>
+      <a class="nav-item <%= page==='my_notifications'?'active':'' %>" href="/app?page=my_notifications"><i class="fa-solid fa-inbox"></i>My Notifications</a>
+      <a class="nav-item <%= page==='profile'?'active':'' %>" href="/app?page=profile"><i class="fa-solid fa-user-lock"></i>Change Password</a>
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" style="color:#f87171" href="/logout"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1><%= pageTitle %></h1>
+      <div style="font-size:11px;color:var(--muted)"><%= b.project_name||'' %> <%= b.project_number?('· '+b.project_number):'' %></div>
+    </div>
+    <div class="user-pill">
+      <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(user.full_name) %>&background=0d9488&color=fff&size=60" alt=""/>
+      <div><div style="font-size:12px;font-weight:600"><%= user.full_name %></div><div style="font-size:10px;color:var(--muted)"><%= user.role.replace(/_/g,' ') %></div></div>
+    </div>
+  </div>
+  <div class="content">
+    <% if(success_msg){ %><div class="alertok"><i class="fa-solid fa-circle-check"></i> <%= decodeURIComponent(success_msg) %></div><% } %>
+    <% if(page==='dashboard'){ %>
+      <% if(canEditDocs){ %>
+      <div class="importb no-print">
+        <div style="flex:1;min-width:220px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800">Import Excel Register</div>
+          <div style="font-size:12px;opacity:.7">Upload .xlsx — new types, statuses & disciplines are detected automatically</div>
+          <div id="importResult" style="font-size:12px;margin-top:6px;color:#5eead4"></div>
+        </div>
+        <input type="file" id="excelFile" accept=".xlsx,.xls" style="color:#fff;font-size:12px"/>
+        <button class="btnx" type="button" onclick="importExcel()">Import Excel</button>
+      </div>
+      <% } %>
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-teal"><div class="lbl">Total Documents</div><div class="val"><%= total_documents||0 %></div><div class="sub">in register</div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-slate"><div class="lbl">Active</div><div class="val"><%= active_count||0 %></div><div class="sub">not closed</div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-green"><div class="lbl">Approved</div><div class="val"><%= approved_count||0 %></div><div class="sub"><%= approval_rate||0 %>% rate</div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-red"><div class="lbl">Rejected</div><div class="val"><%= rejected_count||0 %></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-amber"><div class="lbl">Pending</div><div class="val"><%= pending_count||0 %></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-red"><div class="lbl">Overdue</div><div class="val"><%= overdue_count||0 %></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-indigo"><div class="lbl">Today</div><div class="val"><%= today_count||0 %></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-cyan"><div class="lbl">This Week</div><div class="val"><%= week_count||0 %></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-purple"><div class="lbl">This Month</div><div class="val"><%= month_count||0 %></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="kpi k-slate"><div class="lbl">Closed</div><div class="val"><%= closed_count||0 %></div></div></div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-lg-8"><div class="cardx"><div class="sec">Document Types</div><div style="height:260px"><canvas id="chartType"></canvas></div></div></div>
+        <div class="col-lg-4"><div class="cardx"><div class="sec">Status Distribution</div><div style="height:260px"><canvas id="chartStatus"></canvas></div></div></div>
+        <div class="col-lg-6"><div class="cardx"><div class="sec">By Discipline</div><div style="height:240px"><canvas id="chartDisc"></canvas></div></div></div>
+        <div class="col-lg-6"><div class="cardx"><div class="sec">Monthly Trend</div><div style="height:240px"><canvas id="chartMonth"></canvas></div></div></div>
+      </div>
+      <div class="cardx">
+        <div class="sec">Recent Documents</div>
+        <div class="table-responsive"><table class="tbl"><thead><tr><th>Doc No</th><th>Type</th><th>Title</th><th>Disc</th><th>Status</th><th>Days</th><th>Updated</th></tr></thead><tbody>
+        <% (recent_docs||[]).forEach(d=>{ %>
+          <tr onclick="location.href='/app?page=edit_document&id=<%= d._id %>'" style="cursor:pointer">
+            <td><strong><%= d.doc_number %></strong></td><td><span class="chip"><%= d.type %></span></td>
+            <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= d.title %></td>
+            <td><%= d.discipline||'—' %></td><td><%- sBadge(d.status) %></td>
+            <td style="<%= d.days_open>14?'color:#dc2626;font-weight:700':'' %>"><%= d.days_open||0 %></td>
+            <td style="font-size:11px;color:var(--muted)"><%= fmt(d.updated_at) %></td>
+          </tr>
+        <% }) %>
+        <% if(!(recent_docs||[]).length){ %><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No documents yet. Import Excel to begin.</td></tr><% } %>
+        </tbody></table></div>
+      </div>
+    <% } %>
+    <% if(page==='weekly_summary'){ %>
+      <div class="cardx no-print d-flex gap-2"><button class="btnx" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / PDF</button></div>
+      <div class="cardx">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+          <div>
+            <div class="sec" style="margin:0">Project Status Summary — Weekly Meeting</div>
+            <div style="font-size:13px;color:var(--muted)"><%= b.project_name %> · <%= b.project_number %> · <%= new Date().toLocaleDateString('en-GB') %></div>
+            <div style="font-size:12px;color:var(--muted)">Client: <%= b.client_name||'—' %> · Consultant: <%= b.consultant_name||'—' %> · Contractor: <%= b.contractor_name||'—' %></div>
+          </div>
+          <% if(b.project_logo||b.company_logo){ %><img src="/uploads/<%= b.project_logo||b.company_logo %>" style="height:48px;object-fit:contain"/><% } %>
+        </div>
+        <p style="font-size:14px;line-height:1.7">
+          This week:<br/>
+          • <strong><%= week_count||0 %></strong> documents submitted<br/>
+          • <strong><%= approved_count||0 %></strong> approved (overall)<br/>
+          • <strong><%= pending_count||0 %></strong> pending<br/>
+          • <strong><%= rejected_count||0 %></strong> rejected<br/>
+          • <strong><%= overdue_count||0 %></strong> overdue<br/><br/>
+          Overall document approval rate is <strong><%= approval_rate||0 %>%</strong>.
+        </p>
+        <div class="sec">Discipline Snapshot</div>
+        <div class="table-responsive"><table class="tbl"><thead><tr><th>Discipline</th><th>Total</th></tr></thead><tbody>
+        <% Object.keys(by_discipline||{}).forEach(k=>{ %><tr><td><%= k %></td><td><%= by_discipline[k] %></td></tr><% }) %>
+        </tbody></table></div>
+        <div class="sec" style="margin-top:18px">Top Pending Items</div>
+        <div class="table-responsive"><table class="tbl"><thead><tr><th>Doc No</th><th>Type</th><th>Title</th><th>Status</th><th>Days Open</th></tr></thead><tbody>
+        <% (top_pending||[]).forEach(d=>{ %>
+          <tr><td><strong><%= d.doc_number %></strong></td><td><span class="chip"><%= d.type %></span></td><td><%= d.title %></td><td><%- sBadge(d.status) %></td><td style="color:#dc2626;font-weight:700"><%= d.days_open||0 %></td></tr>
+        <% }) %>
+        <% if(!(top_pending||[]).length){ %><tr><td colspan="5" style="text-align:center;color:var(--muted)">No pending items</td></tr><% } %>
+        </tbody></table></div>
+        <div style="margin-top:20px;font-size:12px;color:var(--muted)">Prepared by: <%= user.full_name %> · <%= b.company_name %></div>
+      </div>
+    <% } %>
+    <% if(page==='document_register'||page==='my_submissions'){ %>
+      <form class="filter no-print" method="GET" action="/app">
+        <input type="hidden" name="page" value="<%= page %>"/>
+        <select name="type" class="inp" style="width:auto;min-width:100px"><option value="">Type</option><% (doc_types||[]).forEach(t=>{ %><option value="<%= t %>" <%= f_type===t?'selected':'' %>><%= t %></option><% }) %></select>
+        <select name="discipline" class="inp" style="width:auto;min-width:100px"><option value="">Discipline</option><% (disciplines||[]).forEach(d=>{ %><option value="<%= d %>" <%= f_discipline===d?'selected':'' %>><%= d %></option><% }) %></select>
+        <select name="status" class="inp" style="width:auto;min-width:110px"><option value="">Status</option><% (statuses||[]).forEach(s=>{ %><option value="<%= s %>" <%= f_status===s?'selected':'' %>><%= s %></option><% }) %></select>
+        <select name="contractor" class="inp" style="width:auto;min-width:110px"><option value="">Contractor</option><% (contractors||[]).forEach(c=>{ %><option value="<%= c %>" <%= f_contractor===c?'selected':'' %>><%= c %></option><% }) %></select>
+        <input class="inp" style="width:auto;min-width:140px" name="search" value="<%= f_search %>" placeholder="Search…"/>
+        <input class="inp" style="width:auto" type="date" name="from" value="<%= f_from %>"/>
+        <input class="inp" style="width:auto" type="date" name="to" value="<%= f_to %>"/>
+        <button class="btnx" type="submit">Apply</button>
+        <a class="btno" href="/app?page=<%= page %>">Reset</a>
+        <div style="flex:1"></div>
+        <% if(canEditDocs){ %><a class="btnx" href="/app?page=add_document">+ Add</a><% } %>
+        <button class="btno" type="button" onclick="exportCSV()">CSV</button>
+        <button class="btno" type="button" onclick="window.print()">Print</button>
+      </form>
+      <div class="cardx"><div class="table-responsive"><table class="tbl" id="registerTable"><thead><tr>
+        <th>#</th><th>Doc Number</th><th>Type</th><th>Title</th><th>Rev</th><th>Status</th><th>Discipline</th><th>Contractor</th><th>Issue</th><th>Due</th><th>Days</th><% if(canEditDocs){ %><th>Actions</th><% } %>
+      </tr></thead><tbody>
+      <% (documents||[]).forEach((d,i)=>{ %>
+        <tr>
+          <td style="color:var(--muted)"><%= i+1 %></td>
+          <td><strong><%= d.doc_number %></strong></td>
+          <td><span class="chip"><%= d.type %></span></td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<%= d.title %>"><%= d.title %></td>
+          <td><%= d.rev %></td><td><%- sBadge(d.status) %></td>
+          <td><%= d.discipline||'—' %></td><td style="font-size:11px"><%= d.contractor||'—' %></td>
+          <td style="font-size:11px"><%= fmt(d.issue_date) %></td><td style="font-size:11px"><%= fmt(d.due_date) %></td>
+          <td style="<%= d.days_open>14?'color:#dc2626;font-weight:700':'' %>"><%= d.days_open||0 %></td>
+          <% if(canEditDocs){ %><td class="no-print">
+            <a href="/app?page=edit_document&id=<%= d._id %>" style="color:var(--accent)"><i class="fa-solid fa-pen"></i></a>
+            <a href="/app?page=document_register&delete=1&table=documents&id=<%= d._id %>" onclick="return confirm('Delete <%= d.doc_number %>?')" style="color:#dc2626;margin-left:8px"><i class="fa-solid fa-trash"></i></a>
+          </td><% } %>
+        </tr>
+      <% }) %>
+      <% if(!(documents||[]).length){ %><tr><td colspan="12" style="text-align:center;padding:28px;color:var(--muted)">No documents found</td></tr><% } %>
+      </tbody></table></div></div>
+    <% } %>
+    <% if(page==='add_document'||page==='edit_document'){ const isEdit=page==='edit_document'&&doc; %>
+      <div class="cardx">
+        <div class="sec"><%= isEdit?'Edit Document':'Add Document' %></div>
+        <form method="POST" action="/app?page=<%= page %>" enctype="multipart/form-data">
+          <input type="hidden" name="action" value="<%= isEdit?'update_document':'add_document' %>"/>
+          <% if(isEdit){ %><input type="hidden" name="id" value="<%= doc._id %>"/><% } %>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="label">Doc Number</label><input class="inp" name="doc_number" value="<%= isEdit?doc.doc_number:'' %>" placeholder="Auto if blank"/></div>
+            <div class="col-md-6"><label class="label">Type *</label><input class="inp" name="type" list="typeList" value="<%= isEdit?doc.type:'' %>" required/><datalist id="typeList"><% (doc_types||[]).forEach(t=>{ %><option value="<%= t %>"><% }) %></datalist></div>
+            <div class="col-md-12"><label class="label">Title *</label><input class="inp" name="title" value="<%= isEdit?doc.title:'' %>" required/></div>
+            <div class="col-md-4"><label class="label">Rev</label><input class="inp" name="rev" value="<%= isEdit?doc.rev:'A' %>"/></div>
+            <div class="col-md-4"><label class="label">Status</label><input class="inp" name="status" list="statusList" value="<%= isEdit?doc.status:'Open' %>"/><datalist id="statusList"><% (statuses||[]).forEach(s=>{ %><option value="<%= s %>"><% }) %></datalist></div>
+            <div class="col-md-4"><label class="label">Discipline</label><input class="inp" name="discipline" list="discList" value="<%= isEdit?doc.discipline:'' %>"/><datalist id="discList"><% (disciplines||[]).forEach(d=>{ %><option value="<%= d %>"><% }) %></datalist></div>
+            <div class="col-md-4"><label class="label">Area</label><input class="inp" name="area" value="<%= isEdit?doc.area:'' %>"/></div>
+            <div class="col-md-4"><label class="label">Package</label><input class="inp" name="package" value="<%= isEdit?doc.package:'' %>"/></div>
+            <div class="col-md-4"><label class="label">Contractor</label><input class="inp" name="contractor" list="contrList" value="<%= isEdit?doc.contractor:'' %>"/><datalist id="contrList"><% (contractors||[]).forEach(c=>{ %><option value="<%= c %>"><% }) %></datalist></div>
+            <div class="col-md-4"><label class="label">Consultant</label><input class="inp" name="consultant" value="<%= isEdit?doc.consultant:'' %>"/></div>
+            <div class="col-md-4"><label class="label">Issue Date</label><input class="inp" type="date" name="issue_date" value="<%= isEdit&&doc.issue_date?new Date(doc.issue_date).toISOString().slice(0,10):'' %>"/></div>
+            <div class="col-md-4"><label class="label">Due Date</label><input class="inp" type="date" name="due_date" value="<%= isEdit&&doc.due_date?new Date(doc.due_date).toISOString().slice(0,10):'' %>"/></div>
+            <div class="col-md-4"><label class="label">Response Date</label><input class="inp" type="date" name="response_date" value="<%= isEdit&&doc.response_date?new Date(doc.response_date).toISOString().slice(0,10):'' %>"/></div>
+            <div class="col-md-4"><label class="label">Submitted By</label><input class="inp" name="submitted_by" value="<%= isEdit?doc.submitted_by:'' %>"/></div>
+            <div class="col-md-4"><label class="label">Reviewer</label><input class="inp" name="reviewer" value="<%= isEdit?doc.reviewer:'' %>"/></div>
+            <div class="col-md-4"><label class="label">Approver</label><input class="inp" name="approver" value="<%= isEdit?doc.approver:'' %>"/></div>
+            <div class="col-12"><label class="label">Remarks</label><textarea class="inp" name="remarks" rows="3"><%= isEdit?doc.remarks:'' %></textarea></div>
+            <% if(isEdit){ %><div class="col-12"><label class="label">Change Note</label><input class="inp" name="change_note"/></div><% } %>
+            <div class="col-12"><label class="label">Attachments</label><input class="inp" type="file" name="attachments" multiple/></div>
+          </div>
+          <div class="mt-3 d-flex gap-2"><button class="btnx" type="submit">Save</button><a class="btno" href="/app?page=document_register">Cancel</a></div>
+        </form>
+      </div>
+    <% } %>
+    <% if(page==='transmittals'){ %>
+      <div class="no-print mb-3"><a class="btnx" href="/app?page=create_transmittal">+ Create Transmittal</a></div>
+      <div class="cardx"><div class="table-responsive"><table class="tbl"><thead><tr><th>No</th><th>Title</th><th>To</th><th>By</th><th>Docs</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+      <% (transmittals||[]).forEach(t=>{ %>
+        <tr>
+          <td><strong><%= t.transmittal_no %></strong></td><td><%= t.title||'—' %></td><td><%= t.issued_to||'—' %></td>
+          <td><%= t.issued_by?t.issued_by.full_name:'—' %></td><td><span class="chip"><%= t.documents?t.documents.length:0 %></span></td>
+          <td><%- sBadge(t.status) %></td><td style="font-size:11px"><%= fmt(t.created_at) %></td>
+          <td class="no-print">
+            <% if(t.status==='Draft'&&canEditDocs){ %><form method="POST" action="/app?page=transmittals" style="display:inline"><input type="hidden" name="action" value="issue_transmittal"/><input type="hidden" name="id" value="<%= t._id %>"/><button class="btnx" style="padding:4px 10px;font-size:11px">Issue</button></form><% } %>
+            <% if(t.status==='Issued'&&canReview){ %><form method="POST" action="/app?page=transmittals" style="display:inline"><input type="hidden" name="action" value="acknowledge_transmittal"/><input type="hidden" name="id" value="<%= t._id %>"/><button class="btng">Ack</button></form><% } %>
+          </td>
+        </tr>
+      <% }) %>
+      <% if(!(transmittals||[]).length){ %><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No transmittals</td></tr><% } %>
+      </tbody></table></div></div>
+    <% } %>
+    <% if(page==='create_transmittal'){ %>
+      <div class="cardx">
+        <div class="sec">Create Transmittal</div>
+        <form method="POST" action="/app?page=transmittals">
+          <input type="hidden" name="action" value="create_transmittal"/>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6"><label class="label">Title</label><input class="inp" name="title" required/></div>
+            <div class="col-md-6"><label class="label">Issued To</label><input class="inp" name="issued_to" required/></div>
+            <div class="col-12"><label class="label">Remarks</label><textarea class="inp" name="remarks" rows="2"></textarea></div>
+          </div>
+          <label class="label">Select Documents</label>
+          <div style="max-height:320px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin-bottom:14px">
+            <% (documents||[]).forEach(d=>{ %>
+              <label style="display:flex;gap:10px;align-items:center;padding:6px;cursor:pointer">
+                <input type="checkbox" name="document_ids[]" value="<%= d._id %>"/>
+                <span class="chip"><%= d.type %></span><strong style="font-size:12px"><%= d.doc_number %></strong>
+                <span style="font-size:12px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= d.title %></span>
+              </label>
+            <% }) %>
+          </div>
+          <button class="btnx" type="submit">Create</button>
+          <a class="btno" href="/app?page=transmittals">Cancel</a>
+        </form>
+      </div>
+    <% } %>
+    <% if(page==='revisions'){ %>
+      <div class="cardx"><div class="sec">Revision History</div>
+        <div class="table-responsive"><table class="tbl"><thead><tr><th>Doc</th><th>Rev</th><th>Note</th><th>By</th><th>When</th></tr></thead><tbody>
+        <% (revisions||[]).forEach(r=>{ %>
+          <tr><td><strong><%= r.document_id?r.document_id.doc_number:'—' %></strong></td><td><%= r.rev %></td><td><%= r.change_note||'—' %></td><td><%= r.changed_by?r.changed_by.full_name:'—' %></td><td style="font-size:11px"><%= fmt(r.changed_at) %></td></tr>
+        <% }) %>
+        </tbody></table></div>
+      </div>
+    <% } %>
+    <% if(page==='manage_users'&&canManageUsers){ %>
+      <div class="no-print mb-3"><button class="btnx" data-bs-toggle="modal" data-bs-target="#addUserModal">+ Add User</button></div>
+      <div class="cardx"><div class="table-responsive"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Actions</th></tr></thead><tbody>
+      <% (users||[]).forEach(u=>{ %>
+        <tr>
+          <td><strong><%= u.full_name %></strong></td><td><%= u.email %></td><td><%- roleBadge(u.role) %></td><td><%= u.company||'—' %></td>
+          <td class="no-print">
+            <button class="btno" style="padding:4px 8px;font-size:11px" onclick="openReset('<%= u._id %>','<%= u.full_name %>')">Reset Password</button>
+            <% if(String(u._id)!==String(user._id)){ %>
+            <a class="btnd" style="text-decoration:none" href="/app?page=manage_users&delete=1&table=users&id=<%= u._id %>" onclick="return confirm('Delete user?')">Delete</a>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+      </tbody></table></div></div>
+      <div class="modal fade" id="addUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="border-radius:14px">
+        <form method="POST" action="/app?page=manage_users"><input type="hidden" name="action" value="add_user"/>
+        <div class="modal-header" style="background:#0f172a;color:#fff"><h5 class="modal-title font-head">Add User</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <label class="label">Full Name</label><input class="inp mb-2" name="full_name" required/>
+          <label class="label">Email</label><input class="inp mb-2" type="email" name="email" required/>
+          <label class="label">Password</label><input class="inp mb-2" name="password" value="ChangeMe@123"/>
+          <label class="label">Role</label>
+          <select class="inp mb-2" name="role">
+            <option value="document_controller">Document Controller</option>
+            <option value="reviewer">Reviewer</option>
+            <option value="viewer">Viewer</option>
+            <option value="admin">Admin</option>
+            <% if(user.role==='super_admin'){ %><option value="super_admin">Super Admin</option><% } %>
+          </select>
+          <label class="label">Company</label><input class="inp mb-2" name="company"/>
+          <label class="label">Phone</label><input class="inp" name="phone"/>
+        </div>
+        <div class="modal-footer"><button type="button" class="btno" data-bs-dismiss="modal">Cancel</button><button class="btnx" type="submit">Create</button></div>
+        </form>
+      </div></div></div>
+      <div class="modal fade" id="resetModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="border-radius:14px">
+        <form method="POST" action="/app?page=manage_users"><input type="hidden" name="action" value="reset_password"/><input type="hidden" name="id" id="resetId"/>
+        <div class="modal-header" style="background:#0f172a;color:#fff"><h5 class="modal-title font-head">Reset Password</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <p id="resetName" style="font-size:13px"></p>
+          <label class="label">New Password</label><input class="inp" name="new_password" required minlength="6"/>
+        </div>
+        <div class="modal-footer"><button type="button" class="btno" data-bs-dismiss="modal">Cancel</button><button class="btnx" type="submit">Reset</button></div>
+        </form>
+      </div></div></div>
+    <% } %>
+    <% if(page==='branding'&&canManageUsers){ %>
+      <div class="cardx">
+        <div class="sec">Company & Project Branding</div>
+        <form method="POST" action="/app?page=branding" enctype="multipart/form-data">
+          <input type="hidden" name="action" value="update_branding"/>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="label">Company Name</label><input class="inp" name="company_name" value="<%= b.company_name||'' %>"/></div>
+            <div class="col-md-6"><label class="label">Project Name</label><input class="inp" name="project_name" value="<%= b.project_name||'' %>"/></div>
+            <div class="col-md-4"><label class="label">Project Number</label><input class="inp" name="project_number" value="<%= b.project_number||'' %>"/></div>
+            <div class="col-md-4"><label class="label">Contract Number</label><input class="inp" name="contract_number" value="<%= b.contract_number||'' %>"/></div>
+            <div class="col-md-4"><label class="label">Client Name</label><input class="inp" name="client_name" value="<%= b.client_name||'' %>"/></div>
+            <div class="col-md-6"><label class="label">Consultant Name</label><input class="inp" name="consultant_name" value="<%= b.consultant_name||'' %>"/></div>
+            <div class="col-md-6"><label class="label">Contractor Name</label><input class="inp" name="contractor_name" value="<%= b.contractor_name||'' %>"/></div>
+            <div class="col-md-4"><label class="label">Company Logo</label><input class="inp" type="file" name="company_logo" accept="image/*"/><% if(b.company_logo){ %><img src="/uploads/<%= b.company_logo %>" style="height:40px;margin-top:6px"/><% } %></div>
+            <div class="col-md-4"><label class="label">Client Logo</label><input class="inp" type="file" name="client_logo" accept="image/*"/><% if(b.client_logo){ %><img src="/uploads/<%= b.client_logo %>" style="height:40px;margin-top:6px"/><% } %></div>
+            <div class="col-md-4"><label class="label">Project Logo</label><input class="inp" type="file" name="project_logo" accept="image/*"/><% if(b.project_logo){ %><img src="/uploads/<%= b.project_logo %>" style="height:40px;margin-top:6px"/><% } %></div>
+            <div class="col-md-6"><label class="label">Consultant Logo</label><input class="inp" type="file" name="consultant_logo" accept="image/*"/></div>
+            <div class="col-md-6"><label class="label">Contractor Logo</label><input class="inp" type="file" name="contractor_logo" accept="image/*"/></div>
+          </div>
+          <button class="btnx mt-3" type="submit">Save Branding</button>
+        </form>
+      </div>
+    <% } %>
+    <% if(page==='reports'){ %>
+      <div class="no-print mb-3 d-flex gap-2"><button class="btnx" onclick="window.print()">Print Report</button><button class="btno" onclick="exportCSV()">Export CSV</button></div>
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3"><div class="kpi k-teal"><div class="lbl">Total</div><div class="val"><%= total_documents||0 %></div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi k-green"><div class="lbl">Approved</div><div class="val"><%= approved_count||0 %></div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi k-amber"><div class="lbl">Pending</div><div class="val"><%= pending_count||0 %></div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi k-red"><div class="lbl">Overdue</div><div class="val"><%= overdue_count||0 %></div></div></div>
+      </div>
+      <div class="cardx">
+        <div class="sec">Overdue Documents</div>
+        <div class="table-responsive"><table class="tbl" id="registerTable"><thead><tr><th>Doc No</th><th>Type</th><th>Title</th><th>Discipline</th><th>Due</th><th>Days</th></tr></thead><tbody>
+        <% (overdue_docs||[]).forEach(d=>{ %>
+          <tr><td><strong><%= d.doc_number %></strong></td><td><span class="chip"><%= d.type %></span></td><td><%= d.title %></td><td><%= d.discipline||'—' %></td><td><%= fmt(d.due_date) %></td><td style="color:#dc2626;font-weight:800"><%= d.days_open %></td></tr>
+        <% }) %>
+        <% if(!(overdue_docs||[]).length){ %><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px">No overdue documents</td></tr><% } %>
+        </tbody></table></div>
+      </div>
+      <div class="cardx">
+        <div class="sec">Status Breakdown</div>
+        <div class="table-responsive"><table class="tbl"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>
+        <% Object.keys(by_status||{}).forEach(k=>{ %><tr><td><%- sBadge(k) %></td><td><strong><%= by_status[k] %></strong></td></tr><% }) %>
+        </tbody></table></div>
+      </div>
+    <% } %>
+    <% if(page==='notifications'&&canManageUsers){ %>
+      <div class="row g-3">
+        <div class="col-md-5"><div class="cardx"><div class="sec">Send Notification</div>
+          <form method="POST" action="/app?page=notifications">
+            <input type="hidden" name="action" value="send_notification"/>
+            <label class="label">Audience</label>
+            <select class="inp mb-2" name="type">
+              <option value="all">All</option>
+              <option value="document_controller">Document Controllers</option>
+              <option value="reviewer">Reviewers</option>
+              <option value="viewer">Viewers</option>
+              <option value="admin">Admins</option>
+            </select>
+            <label class="label">Message</label>
+            <textarea class="inp mb-2" name="message" rows="4" required></textarea>
+            <button class="btnx" type="submit">Send</button>
+          </form>
+        </div></div>
+        <div class="col-md-7"><div class="cardx"><div class="sec">History</div>
+          <% (notifications||[]).forEach(n=>{ %>
+            <div style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13px">
+              <%= n.message %><div style="font-size:10px;color:var(--muted)"><%= n.type %> · <%= fmt(n.created_at) %></div>
+            </div>
+          <% }) %>
+        </div></div>
+      </div>
+    <% } %>
+    <% if(page==='my_notifications'){ %>
+      <div class="cardx"><div class="sec">My Notifications</div>
+        <% (notifs||[]).forEach(n=>{ %>
+          <div style="padding:12px 0;border-bottom:1px solid #f1f5f9"><div style="font-size:13px"><%= n.message %></div><div style="font-size:11px;color:var(--muted)"><%= fmt(n.created_at) %></div></div>
+        <% }) %>
+        <% if(!(notifs||[]).length){ %><div style="text-align:center;color:var(--muted);padding:30px">No notifications</div><% } %>
+      </div>
+    <% } %>
+    <% if(page==='profile'){ %>
+      <div class="cardx" style="max-width:480px">
+        <div class="sec">Change Password</div>
+        <form method="POST" action="/app?page=profile">
+          <input type="hidden" name="action" value="change_own_password"/>
+          <label class="label">Current Password</label><input class="inp mb-2" type="password" name="current_password" required/>
+          <label class="label">New Password</label><input class="inp mb-2" type="password" name="new_password" required minlength="6"/>
+          <button class="btnx" type="submit">Update Password</button>
+        </form>
+      </div>
+    <% } %>
+    <div class="footer"><%= b.company_name||'EDMS' %> · <%= b.project_name||'' %> · Enterprise Document Control System</div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const COLORS=['#0d9488','#6366f1','#d97706','#dc2626','#7c3aed','#0891b2','#16a34a','#f43f5e','#84cc16','#0ea5e9'];
+function exportCSV(){
+  const table=document.getElementById('registerTable'); if(!table) return alert('No table');
+  let csv=[]; for(const row of table.rows){csv.push([...row.cells].map(c=>'"'+c.innerText.replace(/"/g,'""').trim()+'"').join(','));}
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv.join('\n')],{type:'text/csv'}));
+  a.download='register.csv'; a.click();
+}
+function openReset(id,name){
+  document.getElementById('resetId').value=id;
+  document.getElementById('resetName').textContent='Reset password for '+name;
+  new bootstrap.Modal(document.getElementById('resetModal')).show();
+}
+async function importExcel(){
+  const f=document.getElementById('excelFile')?.files?.[0];
+  if(!f) return alert('Choose an Excel file');
+  const fd=new FormData(); fd.append('excel_file',f);
+  const el=document.getElementById('importResult');
+  if(el) el.textContent='Importing…';
+  try{
+    const r=await fetch('/import-excel',{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.error){ if(el) el.textContent=d.error; alert(d.error); }
+    else { if(el) el.textContent=`Imported ${d.imported}, skipped ${d.skipped}`; setTimeout(()=>location.reload(),1200); }
+  }catch(e){ alert(e.message); }
+}
+<% if(page==='dashboard'){ %>
+(async()=>{
+  try{
+    const d=await (await fetch('/api/stats')).json();
+    const tL=Object.keys(d.by_type||{}), tD=tL.map(k=>d.by_type[k]);
+    const sL=Object.keys(d.by_status||{}), sD=sL.map(k=>d.by_status[k]);
+    const dL=Object.keys(d.by_discipline||{}), dD=dL.map(k=>d.by_discipline[k]);
+    const mL=(d.monthly_trend||[]).map(x=>x.label), mD=(d.monthly_trend||[]).map(x=>x.count);
+    if(document.getElementById('chartType')&&tL.length) new Chart(document.getElementById('chartType'),{type:'bar',data:{labels:tL,datasets:[{data:tD,backgroundColor:tL.map((_,i)=>COLORS[i%COLORS.length]),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    if(document.getElementById('chartStatus')&&sL.length) new Chart(document.getElementById('chartStatus'),{type:'doughnut',data:{labels:sL,datasets:[{data:sD,backgroundColor:sL.map((_,i)=>COLORS[i%COLORS.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}}}});
+    if(document.getElementById('chartDisc')&&dL.length) new Chart(document.getElementById('chartDisc'),{type:'pie',data:{labels:dL,datasets:[{data:dD,backgroundColor:dL.map((_,i)=>COLORS[i%COLORS.length])}]},options:{responsive:true,maintainAspectRatio:false}});
+    if(document.getElementById('chartMonth')) new Chart(document.getElementById('chartMonth'),{type:'line',data:{labels:mL.length?mL:['—'],datasets:[{data:mD.length?mD:[0],borderColor:'#0d9488',backgroundColor:'rgba(13,148,136,.15)',fill:true,tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  }catch(e){console.error(e)}
+})();
+<% } %>
+</script>
+</body>
+</html>
