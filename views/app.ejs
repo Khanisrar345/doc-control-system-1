@@ -2,532 +2,1342 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>EDMS — <%= (page||'dashboard').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) %></title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="theme-color" content="<%= settings.primary_color||'#1a7a7a' %>"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>DCS — <%= (page||'dashboard').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) %></title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--sidebar:#0f172a;--accent:#0d9488;--accent2:#14b8a6;--bg:#f1f5f9;--text:#0f172a;--muted:#64748b;--card:#fff;--radius:14px;--shadow:0 2px 14px rgba(15,23,42,.07)}
-*{box-sizing:border-box}body{margin:0;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
-h1,h2,h3,.font-head{font-family:'Barlow Condensed',sans-serif}
-.sidebar{position:fixed;inset:0 auto 0 0;width:270px;background:var(--sidebar);display:flex;flex-direction:column;z-index:100;overflow-y:auto}
-.brand{padding:20px;display:flex;gap:12px;align-items:center;border-bottom:1px solid rgba(255,255,255,.08)}
-.brand-logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#0f766e,#2dd4bf);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-family:'Barlow Condensed',sans-serif}
-.brand-title{color:#fff;font-weight:800;font-size:18px;font-family:'Barlow Condensed',sans-serif;line-height:1}
-.brand-sub{color:rgba(255,255,255,.45);font-size:10px;letter-spacing:.5px}
-.nav-sec{padding:14px 12px 4px}.nav-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:1.4px;text-transform:uppercase;padding:0 8px;margin-bottom:6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13px;font-weight:500;margin-bottom:2px}
-.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}.nav-item.active{background:var(--accent);color:#fff}
-.nav-item i{width:16px;text-align:center;font-size:13px}
-.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,.08)}
-.main{margin-left:270px;min-height:100vh}
-.topbar{height:64px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:50;gap:12px}
-.topbar h1{font-size:20px;font-weight:800;margin:0;font-family:'Barlow Condensed',sans-serif}
-.user-pill{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px 5px 5px}
-.user-pill img{width:30px;height:30px;border-radius:7px}
-.content{padding:22px}
-.cardx{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
-.kpi{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;border-left:4px solid #cbd5e1}
-.kpi .lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
-.kpi .val{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;line-height:1.1}
-.kpi .sub{font-size:10px;color:var(--muted)}
-.k-teal{border-color:#0d9488}.k-teal .val{color:#0d9488}
-.k-green{border-color:#16a34a}.k-green .val{color:#16a34a}
-.k-amber{border-color:#d97706}.k-amber .val{color:#d97706}
-.k-red{border-color:#dc2626}.k-red .val{color:#dc2626}
-.k-indigo{border-color:#6366f1}.k-indigo .val{color:#6366f1}
-.k-purple{border-color:#7c3aed}.k-purple .val{color:#7c3aed}
-.k-slate{border-color:#475569}.k-slate .val{color:#475569}
-.k-cyan{border-color:#0891b2}.k-cyan .val{color:#0891b2}
-.sec{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px}
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{background:var(--sidebar);color:#fff;padding:9px 11px;text-align:left;font-size:11px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase}
-.tbl td{padding:9px 11px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
-.tbl tr:nth-child(even){background:#f8fafc}.tbl tr:hover{background:#f0fdfa}
-.chip{display:inline-block;padding:2px 8px;border-radius:5px;background:#0f172a;color:#fff;font-size:10px;font-weight:800;font-family:'Barlow Condensed',sans-serif}
-.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase}
-.btnx{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
-.btnx:hover{background:#0f766e;color:#fff}
-.btno{background:transparent;color:var(--accent);border:1.5px solid var(--accent);border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
-.btnd{background:#dc2626;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
-.btng{background:#16a34a;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
-.label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;display:block}
-.inp{width:100%;border:1.5px solid #e2e8f0;border-radius:9px;padding:9px 12px;font-size:13px;background:#f8fafc}
-.inp:focus{outline:none;border-color:var(--accent);background:#fff}
-.filter{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.alertok{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px}
-.importb{background:linear-gradient(135deg,#0f172a,#134e4a);border-radius:var(--radius);padding:18px;margin-bottom:16px;color:#fff;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.footer{text-align:center;padding:16px;font-size:11px;color:var(--muted)}
-@media(max-width:900px){.sidebar{width:220px}.main{margin-left:220px}}
-@media(max-width:700px){.sidebar{display:none}.main{margin-left:0}}
-@media print{.sidebar,.topbar,.filter,.importb,.no-print{display:none!important}.main{margin-left:0!important}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+:root{
+  --pc:<%= settings.primary_color||'#1a7a7a' %>;
+  --ac:<%= settings.accent_color||'#23a6a6' %>;
+  --sidebar:#0f1923;--sidebar2:#162230;--sidebar3:#1d2d3e;
+  --bg:#f0f4f8;--white:#fff;--surface:#fff;
+  --text:#1a2332;--muted:#6b7280;--border:#e5eaef;
+  --radius:14px;--radius-sm:9px;
+  --shadow:0 2px 12px rgba(0,0,0,.07);--shadow-lg:0 8px 40px rgba(0,0,0,.15);
+  --sidebar-w:260px;--topbar-h:60px;--font:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--sidebar);display:flex;flex-direction:column;z-index:200;overflow-y:auto;transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.sidebar::-webkit-scrollbar{width:3px;} .sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.sidebar-brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.brand-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,var(--pc),var(--ac));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;}
+.brand-text .t1{font-size:13px;font-weight:700;color:#fff;line-height:1.2;}
+.brand-text .t2{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.3px;}
+.nav-section{padding:10px 8px 2px;}
+.nav-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:1.2px;text-transform:uppercase;padding:0 8px;margin-bottom:4px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-sm);margin-bottom:1px;color:rgba(255,255,255,.5);font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all .15s;}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9);}
+.nav-item.active{background:var(--pc);color:#fff;box-shadow:0 4px 12px rgba(26,122,122,.35);}
+.nav-item i{width:16px;text-align:center;font-size:13px;flex-shrink:0;}
+.sidebar-bottom{margin-top:auto;padding:10px 8px;border-top:1px solid rgba(255,255,255,.06);}
+.sidebar-credit{font-size:10px;color:rgba(255,255,255,.18);text-align:center;padding:6px 0;line-height:1.5;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:var(--sidebar-w);right:0;height:var(--topbar-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;z-index:100;box-shadow:var(--shadow);}
+.topbar-toggle{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:4px;}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;transition:border-color .2s;}
+.topbar-search:focus-within{border-color:var(--pc);}
+.topbar-search i{color:var(--muted);font-size:13px;}
+.topbar-search input{border:none;background:none;outline:none;font-size:13px;width:160px;font-family:var(--font);}
+.tb-btn{width:36px;height:36px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .18s;text-decoration:none;position:relative;}
+.tb-btn:hover{border-color:var(--pc);color:var(--pc);}
+.tb-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;background:#ef4444;border-radius:50%;border:2px solid #fff;}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px 5px 5px;cursor:pointer;}
+.user-av{width:28px;height:28px;border-radius:7px;object-fit:cover;}
+.user-info .uname{font-size:12px;font-weight:600;line-height:1.2;}
+.user-info .urole{font-size:10px;color:var(--muted);}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);padding-top:var(--topbar-h);min-height:100vh;display:flex;flex-direction:column;}
+.content{padding:20px 22px;flex:1;}
+
+/* ALERT */
+.alert-success{background:#f0fdf4;border:1px solid #86efac;color:#15803d;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:14px;animation:slideDown .3s ease;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);border:none;padding:20px;margin-bottom:16px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text);}
+.card-badge{background:var(--bg);color:var(--muted);font-size:10px;padding:3px 8px;border-radius:6px;font-weight:600;white-space:nowrap;}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;margin-bottom:18px;}
+.kpi{background:var(--white);border-radius:var(--radius);padding:18px 16px 14px;border-left:4px solid var(--border);box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.kpi-icon{font-size:18px;margin-bottom:7px;}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:3px;}
+.kpi-val{font-size:30px;font-weight:800;line-height:1;margin-bottom:2px;}
+.kpi-sub{font-size:10px;color:var(--muted);}
+.kc-teal{border-left-color:var(--pc);} .kc-teal .kpi-val{color:var(--pc);}
+.kc-green{border-left-color:#16a34a;} .kc-green .kpi-val{color:#16a34a;}
+.kc-amber{border-left-color:#d97706;} .kc-amber .kpi-val{color:#d97706;}
+.kc-red{border-left-color:#dc2626;} .kc-red .kpi-val{color:#dc2626;}
+.kc-indigo{border-left-color:#6366f1;} .kc-indigo .kpi-val{color:#6366f1;}
+.kc-purple{border-left-color:#7c3aed;} .kc-purple .kpi-val{color:#7c3aed;}
+.kc-orange{border-left-color:#ea580c;} .kc-orange .kpi-val{color:#ea580c;}
+.kc-slate{border-left-color:#64748b;} .kc-slate .kpi-val{color:#64748b;}
+.kc-pink{border-left-color:#db2777;} .kc-pink .kpi-val{color:#db2777;}
+.kc-sky{border-left-color:#0284c7;} .kc-sky .kpi-val{color:#0284c7;}
+
+/* CHIPS & PILLS */
+.chip{display:inline-block;padding:2px 8px;border-radius:5px;background:#1a2332;color:#fff;font-size:10px;font-weight:700;letter-spacing:.3px;}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.2px;}
+.pill-green{background:#dcfce7;color:#15803d;} .pill-amber{background:#fef3c7;color:#92400e;}
+.pill-teal{background:#ccfbf1;color:#0f766e;} .pill-orange{background:#ffedd5;color:#9a3412;}
+.pill-red{background:#fee2e2;color:#991b1b;} .pill-grey{background:#f3f4f6;color:#374151;}
+.pill-pink{background:#fce7f3;color:#9d174d;} .pill-blue{background:#dbeafe;color:#1e40af;}
+.pill-indigo{background:#e0e7ff;color:#3730a3;} .pill-purple{background:#ede9fe;color:#5b21b6;}
+
+/* TABLES */
+.tbl-wrap{overflow-x:auto;}
+table.dcs{width:100%;border-collapse:collapse;font-size:12.5px;}
+table.dcs thead th{background:#0f1923;color:#fff;padding:9px 11px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.3px;white-space:nowrap;position:sticky;top:0;z-index:1;}
+table.dcs tbody tr:nth-child(even){background:#fafbfd;}
+table.dcs tbody tr:hover{background:#f0f9f9;}
+table.dcs td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:middle;}
+table.dcs .no-data td{text-align:center;padding:40px;color:var(--muted);}
+.days-overdue{color:#dc2626;font-weight:700;}
+
+/* FORMS */
+.form-group{margin-bottom:13px;}
+.form-label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+.form-control{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text);background:#f8fafc;outline:none;transition:border-color .2s;}
+.form-control:focus{border-color:var(--pc);background:#fff;}
+select.form-control{cursor:pointer;}
+textarea.form-control{resize:vertical;min-height:80px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .18s;font-family:var(--font);text-decoration:none;white-space:nowrap;}
+.btn-primary{background:var(--pc);color:#fff;}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px);}
+.btn-success{background:#16a34a;color:#fff;} .btn-success:hover{background:#15803d;}
+.btn-danger{background:#dc2626;color:#fff;} .btn-danger:hover{background:#b91c1c;}
+.btn-outline{background:transparent;border:1.5px solid var(--pc);color:var(--pc);}
+.btn-outline:hover{background:var(--pc);color:#fff;}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--pc);color:var(--pc);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-icon{padding:6px;width:30px;height:30px;justify-content:center;}
+
+/* FILTER BAR */
+.filter-bar{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:13px 16px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.fl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+.fs{padding:6px 9px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);background:#f8fafc;color:var(--text);outline:none;cursor:pointer;}
+.fs:focus{border-color:var(--pc);}
+.fsearch{padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);background:#f8fafc;color:var(--text);outline:none;min-width:150px;}
+.fsearch:focus{border-color:var(--pc);}
+
+/* GRIDS */
+.g-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.g-8-4{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+
+/* CHART BOXES */
+.chart-box{position:relative;width:100%;}
+.ch220{height:220px;} .ch260{height:260px;} .ch300{height:300px;}
+
+/* IMPORT BANNER */
+.import-banner{background:linear-gradient(135deg,#0f1923,#1d2d3e);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.import-banner .it1{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;}
+.import-banner .it2{font-size:12px;color:rgba(255,255,255,.4);}
+.import-result{font-size:12px;margin-top:6px;display:none;font-weight:600;}
+
+/* MATRIX / DISCIPLINE CARDS */
+.disc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
+.disc-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.disc-card-hdr{background:#0f1923;padding:10px 14px;display:flex;align-items:center;gap:8px;}
+.disc-card-type{background:var(--pc);color:#fff;font-size:13px;font-weight:800;padding:3px 10px;border-radius:5px;letter-spacing:.3px;}
+.disc-card-sub{font-size:11px;color:rgba(255,255,255,.5);}
+.disc-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.disc-tbl th{background:rgba(0,0,0,.25);color:rgba(255,255,255,.6);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:6px 10px;}
+.disc-tbl td{padding:7px 10px;border-bottom:1px solid var(--border);font-weight:600;}
+.disc-tbl td:first-child{background:#f8fafc;font-size:11px;font-weight:700;color:var(--text);}
+.disc-tbl .dtr td{background:#0f1923;color:#fff;font-weight:800;}
+.disc-tbl .dtr td:first-child{background:#1d2d3e;}
+
+/* TABS */
+.tab-bar{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:16px;overflow-x:auto;}
+.tab{padding:9px 16px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;}
+.tab.active,.tab:hover{color:var(--pc);}
+.tab.active{border-bottom-color:var(--pc);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* PROGRESS */
+.prog-bar{background:#f3f4f6;border-radius:6px;height:7px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:6px;transition:width .5s ease;}
+
+/* LOGO UPLOAD BOX */
+.logo-box{width:100px;height:100px;border:2px dashed var(--border);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#f8fafc;transition:all .2s;overflow:hidden;}
+.logo-box:hover{border-color:var(--pc);background:#f0f9f9;}
+.logo-box img{width:100%;height:100%;object-fit:contain;}
+.logo-hint{font-size:10px;color:var(--muted);text-align:center;padding:4px;}
+
+/* ROLE BADGES */
+.role-badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;}
+.role-super_admin{background:#1e1b4b;color:#c7d2fe;}
+.role-admin{background:#0c4a6e;color:#bae6fd;}
+.role-document_controller{background:#064e3b;color:#6ee7b7;}
+.role-reviewer{background:#78350f;color:#fcd34d;}
+.role-viewer{background:#374151;color:#d1d5db;}
+.role-contractor{background:#7c2d12;color:#fed7aa;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:mIn .22s ease;}
+@keyframes mIn{from{opacity:0;transform:scale(.93);}to{opacity:1;transform:none;}}
+.modal-hdr{background:#0f1923;padding:14px 18px;border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;justify-content:space-between;}
+.modal-hdr h3{font-size:14px;font-weight:700;color:#fff;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:#fff;}
+.modal-body{padding:20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+
+/* PRINT */
+@media print{
+  @page{margin:10mm;}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .sidebar,.topbar,.filter-bar,.import-banner,.btn,.modal-overlay,.no-print,.topbar-toggle,.sidebar-overlay{display:none!important;}
+  .main{margin-left:0!important;padding-top:0!important;}
+  .content{padding:0!important;}
+  .card,.kpi{box-shadow:none!important;border:1px solid #e5eaef!important;}
+  .kpi{break-inside:avoid;}
+  table.dcs thead th{background:#0f1923!important;color:#fff!important;}
+  .disc-tbl .dtr td{background:#0f1923!important;color:#fff!important;}
+  .disc-tbl .dtr td:first-child{background:#1d2d3e!important;}
+  .print-header{display:block!important;}
+  .print-footer{display:flex!important;}
+}
+.print-header{display:none;}
+.ph-band{background:linear-gradient(135deg,var(--pc),var(--ac));border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-start;}
+.ph-band h1{font-size:18px;font-weight:800;color:#fff;margin-bottom:3px;}
+.ph-band .ph-sub{font-size:11px;color:rgba(255,255,255,.7);}
+.ph-meta{display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:12px;}
+.ph-meta-item{flex:1;padding:7px 12px;border-right:1px solid var(--border);}
+.ph-meta-item:last-child{border-right:none;}
+.ph-meta-item strong{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px;}
+.ph-meta-item span{font-size:12px;font-weight:700;color:var(--text);}
+.print-footer{display:none;margin-top:14px;padding:10px 0 0;border-top:2px solid var(--pc);justify-content:space-between;font-size:11px;color:var(--muted);}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  :root{--sidebar-w:0px;}
+  .sidebar{transform:translateX(-260px);}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;}
+  .topbar{left:0;}
+  .topbar-toggle{display:block;}
+  .g-2,.g-3,.g-8-4{grid-template-columns:1fr;}
+  .g3,.g4{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:600px){
+  .content{padding:12px 14px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  .topbar-search,.user-info{display:none;}
+  table.dcs{font-size:11px;}
+  table.dcs thead th,table.dcs td{padding:7px 8px;}
+}
 </style>
 </head>
 <body>
 <%
-const SS={
-  'Approved':'background:#dcfce7;color:#15803d',
-  'Approved with Comments':'background:#d1fae5;color:#047857',
-  'Under Review':'background:#fef3c7;color:#92400e',
-  'Open':'background:#ccfbf1;color:#0f766e',
-  'Pending':'background:#ffedd5;color:#9a3412',
-  'Rejected':'background:#fee2e2;color:#991b1b',
-  'Closed':'background:#f1f5f9;color:#334155',
-  'Submitted':'background:#e0e7ff;color:#3730a3',
-  'Returned':'background:#fce7f3;color:#9d174d',
-  'Cancelled':'background:#e2e8f0;color:#475569',
-  'Draft':'background:#e0e7ff;color:#3730a3',
-  'Issued':'background:#dbeafe;color:#1e40af',
-  'Acknowledged':'background:#dcfce7;color:#15803d'
-};
-function sBadge(s){const st=SS[s]||'background:#e2e8f0;color:#334155';return `<span class="pill" style="${st}">${s||'—'}</span>`}
-function roleBadge(r){const m={super_admin:'#0f172a',admin:'#0f766e',document_controller:'#0369a1',reviewer:'#b45309',viewer:'#475569'};return `<span class="pill" style="background:${m[r]||'#64748b'};color:#fff">${(r||'').replace(/_/g,' ')}</span>`}
-function fmt(d){return d?new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—'}
+const PC=settings.primary_color||'#1a7a7a';
+const AC=settings.accent_color||'#23a6a6';
+const PALETTE=['#1a7a7a','#6366f1','#f59e0b','#ef4444','#8b5cf6','#f97316','#34d399','#60a5fa','#ec4899','#84cc16','#06b6d4','#f43f5e','#a78bfa','#fb923c'];
+const STATUS_COLOR={'Approved':'pill-green','Under Review':'pill-amber','Open':'pill-teal','Pending':'pill-orange','Rejected':'pill-red','Closed':'pill-grey','Revise & Resubmit':'pill-pink','Submitted':'pill-blue','Returned':'pill-indigo','Cancelled':'pill-grey','Draft':'pill-indigo','Issued':'pill-blue','Acknowledged':'pill-green'};
+const STATUS_HEX={'Approved':'#16a34a','Under Review':'#d97706','Open':'#0f766e','Pending':'#ea580c','Rejected':'#dc2626','Closed':'#6b7280','Revise & Resubmit':'#db2777','Submitted':'#1e40af','Returned':'#4f46e5'};
+function sPill(s){const cls=STATUS_COLOR[s]||'pill-grey';return `<span class="pill ${cls}">${s||'—'}</span>`;}
+function sHex(s){return STATUS_HEX[s]||(PALETTE[[...( s||'x')].reduce((a,c)=>a+c.charCodeAt(0),0)%PALETTE.length]);}
+function roleBadge(r){return `<span class="role-badge role-${r||'viewer'}">${(r||'viewer').replace(/_/g,' ')}</span>`;}
+function fmtDate(d){return d?new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';}
+function fmtNum(n){return (n||0).toLocaleString();}
 const pageTitle=(page||'dashboard').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-const b=branding||{};
+const isAdmin=['super_admin','admin'].includes(user.role);
+const isEditor=['super_admin','admin','document_controller'].includes(user.role);
 %>
-<div class="sidebar">
-  <div class="brand">
-    <% if(b.company_logo){ %><img src="/uploads/<%= b.company_logo %>" style="width:42px;height:42px;border-radius:10px;object-fit:contain;background:#fff"/><% } else { %><div class="brand-logo">ED</div><% } %>
-    <div><div class="brand-title"><%= b.company_name||'EDMS' %></div><div class="brand-sub"><%= b.project_name||'DOCUMENT CONTROL' %></div></div>
+
+<!-- PRINT HEADER/FOOTER -->
+<div class="print-header">
+  <div class="ph-band">
+    <div><h1><%=settings.project_name%></h1><div class="ph-sub"><%=pageTitle%> &nbsp;·&nbsp; <%=settings.company_name%></div></div>
+    <div style="text-align:right;color:rgba(255,255,255,.75);font-size:11px;">
+      <% if(settings.project_number){%><div>Project: <%=settings.project_number%></div><%}%>
+      <% if(settings.contract_number){%><div>Contract: <%=settings.contract_number%></div><%}%>
+    </div>
   </div>
-  <div style="flex:1;overflow:auto;padding-bottom:8px">
-    <div class="nav-sec"><div class="nav-label">Overview</div>
-      <a class="nav-item <%= page==='dashboard'?'active':'' %>" href="/app?page=dashboard"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
-      <a class="nav-item <%= page==='weekly_summary'?'active':'' %>" href="/app?page=weekly_summary"><i class="fa-solid fa-calendar-week"></i>Weekly Summary</a>
+  <div class="ph-meta">
+    <div class="ph-meta-item"><strong>Report</strong><span><%=pageTitle%></span></div>
+    <div class="ph-meta-item"><strong>Prepared By</strong><span><%=settings.prepared_by||user.full_name%></span></div>
+    <div class="ph-meta-item"><strong>Date</strong><span><%=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})%></span></div>
+    <div class="ph-meta-item"><strong>Client</strong><span><%=settings.client_name||'—'%></span></div>
+  </div>
+</div>
+<div class="print-footer">
+  <span><strong><%=settings.prepared_by||user.full_name%></strong> &nbsp;·&nbsp; <%=settings.company_name%> &nbsp;·&nbsp; <%=settings.project_name%></span>
+  <span>Generated: <%=new Date().toLocaleString('en-GB')%> &nbsp;·&nbsp; CONFIDENTIAL</span>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">DC</div>
+    <div class="brand-text">
+      <div class="t1"><%=settings.project_name.length>22?settings.project_name.slice(0,20)+'…':settings.project_name%></div>
+      <div class="t2">Document Control v2</div>
     </div>
-    <% if(canEditDocs || user.role==='reviewer' || user.role==='viewer'){ %>
-    <div class="nav-sec"><div class="nav-label">Documents</div>
-      <a class="nav-item <%= page==='document_register'?'active':'' %>" href="/app?page=document_register"><i class="fa-solid fa-folder-open"></i>Document Register</a>
-      <% if(canEditDocs){ %>
-      <a class="nav-item <%= page==='add_document'||page==='edit_document'?'active':'' %>" href="/app?page=add_document"><i class="fa-solid fa-plus-circle"></i>Add Document</a>
-      <a class="nav-item <%= page==='transmittals'||page==='create_transmittal'?'active':'' %>" href="/app?page=transmittals"><i class="fa-solid fa-paper-plane"></i>Transmittals</a>
-      <a class="nav-item <%= page==='revisions'?'active':'' %>" href="/app?page=revisions"><i class="fa-solid fa-code-branch"></i>Revision Log</a>
-      <% } %>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:8px;">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a href="/app?page=dashboard" class="nav-item <%=page==='dashboard'?'active':''%>"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
     </div>
-    <% } %>
-    <% if(canEditDocs || user.role==='reviewer'){ %>
-    <div class="nav-sec"><div class="nav-label">Reports</div>
-      <a class="nav-item <%= page==='reports'?'active':'' %>" href="/app?page=reports"><i class="fa-solid fa-chart-bar"></i>Reports & Analytics</a>
+    <%if(isEditor||user.role==='reviewer'||user.role==='viewer'){%>
+    <div class="nav-section">
+      <div class="nav-label">Documents</div>
+      <a href="/app?page=document_register" class="nav-item <%=page==='document_register'?'active':''%>"><i class="fa-solid fa-folder-open"></i> Document Register</a>
+      <%if(isEditor){%><a href="/app?page=add_document" class="nav-item <%=['add_document','edit_document'].includes(page)?'active':''%>"><i class="fa-solid fa-circle-plus"></i> Add Document</a><%}%>
+      <a href="/app?page=transmittals" class="nav-item <%=['transmittals','create_transmittal'].includes(page)?'active':''%>"><i class="fa-solid fa-paper-plane"></i> Transmittals</a>
+      <a href="/app?page=revisions" class="nav-item <%=page==='revisions'?'active':''%>"><i class="fa-solid fa-code-branch"></i> Revision Log</a>
     </div>
-    <% } %>
-    <% if(canManageUsers){ %>
-    <div class="nav-sec"><div class="nav-label">Administration</div>
-      <a class="nav-item <%= page==='manage_users'?'active':'' %>" href="/app?page=manage_users"><i class="fa-solid fa-users"></i>Manage Users</a>
-      <a class="nav-item <%= page==='branding'?'active':'' %>" href="/app?page=branding"><i class="fa-solid fa-building"></i>Branding</a>
-      <a class="nav-item <%= page==='notifications'?'active':'' %>" href="/app?page=notifications"><i class="fa-solid fa-bell"></i>Notifications</a>
+    <%}%>
+    <%if(user.role==='contractor'){%>
+    <div class="nav-section">
+      <div class="nav-label">My Documents</div>
+      <a href="/app?page=my_submissions" class="nav-item <%=page==='my_submissions'?'active':''%>"><i class="fa-solid fa-file-circle-check"></i> My Submissions</a>
     </div>
-    <% } %>
-    <div class="nav-sec"><div class="nav-label">Account</div>
-      <a class="nav-item <%= page==='my_notifications'?'active':'' %>" href="/app?page=my_notifications"><i class="fa-solid fa-inbox"></i>My Notifications</a>
-      <a class="nav-item <%= page==='profile'?'active':'' %>" href="/app?page=profile"><i class="fa-solid fa-user-lock"></i>Change Password</a>
+    <%}%>
+    <%if(isEditor||user.role==='reviewer'){%>
+    <div class="nav-section">
+      <div class="nav-label">Analytics</div>
+      <a href="/app?page=reports" class="nav-item <%=page==='reports'?'active':''%>"><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</a>
+    </div>
+    <%}%>
+    <%if(isAdmin){%>
+    <div class="nav-section">
+      <div class="nav-label">Administration</div>
+      <a href="/app?page=manage_users" class="nav-item <%=page==='manage_users'?'active':''%>"><i class="fa-solid fa-users"></i> Manage Users</a>
+      <a href="/app?page=notifications" class="nav-item <%=page==='notifications'?'active':''%>"><i class="fa-solid fa-bell"></i> Notifications</a>
+    </div>
+    <%}%>
+    <div class="nav-section">
+      <div class="nav-label">Personal</div>
+      <a href="/app?page=my_notifications" class="nav-item <%=page==='my_notifications'?'active':''%>"><i class="fa-solid fa-inbox"></i> My Inbox</a>
+      <a href="/app?page=apply_leave" class="nav-item <%=page==='apply_leave'?'active':''%>"><i class="fa-solid fa-calendar-xmark"></i> Leave Request</a>
+      <a href="/app?page=feedback" class="nav-item <%=page==='feedback'?'active':''%>"><i class="fa-solid fa-comment-dots"></i> Feedback</a>
+      <a href="/app?page=settings" class="nav-item <%=page==='settings'?'active':''%>"><i class="fa-solid fa-gear"></i> Settings</a>
     </div>
   </div>
   <div class="sidebar-bottom">
-    <a class="nav-item" style="color:#f87171" href="/logout"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+    <a href="/logout" class="nav-item" style="color:#f87171;"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+    <div class="sidebar-credit"><%=settings.company_name%><br/>Document Control System</div>
+  </div>
+</nav>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <button class="topbar-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+  <div class="topbar-title"><%=pageTitle%></div>
+  <div class="topbar-search no-print">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" id="globalSearch" placeholder="Search documents…" onkeydown="if(event.key==='Enter')doSearch(this.value)"/>
+  </div>
+  <a href="/app?page=my_notifications" class="tb-btn no-print"><i class="fa-solid fa-bell"></i><span class="tb-dot"></span></a>
+  <button class="tb-btn no-print" onclick="openModal('printModal')"><i class="fa-solid fa-print"></i></button>
+  <div class="user-chip no-print">
+    <img src="https://ui-avatars.com/api/?name=<%=encodeURIComponent(user.full_name)%>&background=<%=PC.replace('#','')%>&color=fff&size=60" class="user-av"/>
+    <div class="user-info"><div class="uname"><%=user.full_name.split(' ')[0]%></div><div class="urole"><%=user.role.replace(/_/g,' ')%></div></div>
+  </div>
+</header>
+
+<!-- PRINT MODAL -->
+<div class="modal-overlay" id="printModal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-hdr"><h3>🖨 Print / Export PDF</h3><button class="modal-close" onclick="closeModal('printModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Page Size</label>
+        <select class="form-control" id="pSize"><option>A4</option><option>A3</option><option>Letter</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Orientation</label>
+        <div style="display:flex;gap:12px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="pOrient" value="portrait" checked/> Portrait</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="pOrient" value="landscape"/> Landscape</label>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);background:var(--bg);border-radius:var(--radius-sm);padding:10px;margin-top:4px;">
+        💡 In the print dialog: enable <strong>Background graphics</strong>, set margins to <strong>Minimum</strong>, save as <strong>PDF</strong>.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('printModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="doPrint()"><i class="fa-solid fa-print"></i> Print Now</button>
+    </div>
   </div>
 </div>
-<div class="main">
-  <div class="topbar">
-    <div>
-      <h1><%= pageTitle %></h1>
-      <div style="font-size:11px;color:var(--muted)"><%= b.project_name||'' %> <%= b.project_number?('· '+b.project_number):'' %></div>
-    </div>
-    <div class="user-pill">
-      <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(user.full_name) %>&background=0d9488&color=fff&size=60" alt=""/>
-      <div><div style="font-size:12px;font-weight:600"><%= user.full_name %></div><div style="font-size:10px;color:var(--muted)"><%= user.role.replace(/_/g,' ') %></div></div>
-    </div>
-  </div>
-  <div class="content">
-    <% if(success_msg){ %><div class="alertok"><i class="fa-solid fa-circle-check"></i> <%= decodeURIComponent(success_msg) %></div><% } %>
-    <% if(page==='dashboard'){ %>
-      <% if(canEditDocs){ %>
-      <div class="importb no-print">
-        <div style="flex:1;min-width:220px">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800">Import Excel Register</div>
-          <div style="font-size:12px;opacity:.7">Upload .xlsx — new types, statuses & disciplines are detected automatically</div>
-          <div id="importResult" style="font-size:12px;margin-top:6px;color:#5eead4"></div>
-        </div>
-        <input type="file" id="excelFile" accept=".xlsx,.xls" style="color:#fff;font-size:12px"/>
-        <button class="btnx" type="button" onclick="importExcel()">Import Excel</button>
-      </div>
-      <% } %>
-      <div class="row g-3 mb-3">
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-teal"><div class="lbl">Total Documents</div><div class="val"><%= total_documents||0 %></div><div class="sub">in register</div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-slate"><div class="lbl">Active</div><div class="val"><%= active_count||0 %></div><div class="sub">not closed</div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-green"><div class="lbl">Approved</div><div class="val"><%= approved_count||0 %></div><div class="sub"><%= approval_rate||0 %>% rate</div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-red"><div class="lbl">Rejected</div><div class="val"><%= rejected_count||0 %></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-amber"><div class="lbl">Pending</div><div class="val"><%= pending_count||0 %></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-red"><div class="lbl">Overdue</div><div class="val"><%= overdue_count||0 %></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-indigo"><div class="lbl">Today</div><div class="val"><%= today_count||0 %></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-cyan"><div class="lbl">This Week</div><div class="val"><%= week_count||0 %></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-purple"><div class="lbl">This Month</div><div class="val"><%= month_count||0 %></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="kpi k-slate"><div class="lbl">Closed</div><div class="val"><%= closed_count||0 %></div></div></div>
-      </div>
-      <div class="row g-3 mb-3">
-        <div class="col-lg-8"><div class="cardx"><div class="sec">Document Types</div><div style="height:260px"><canvas id="chartType"></canvas></div></div></div>
-        <div class="col-lg-4"><div class="cardx"><div class="sec">Status Distribution</div><div style="height:260px"><canvas id="chartStatus"></canvas></div></div></div>
-        <div class="col-lg-6"><div class="cardx"><div class="sec">By Discipline</div><div style="height:240px"><canvas id="chartDisc"></canvas></div></div></div>
-        <div class="col-lg-6"><div class="cardx"><div class="sec">Monthly Trend</div><div style="height:240px"><canvas id="chartMonth"></canvas></div></div></div>
-      </div>
-      <div class="cardx">
-        <div class="sec">Recent Documents</div>
-        <div class="table-responsive"><table class="tbl"><thead><tr><th>Doc No</th><th>Type</th><th>Title</th><th>Disc</th><th>Status</th><th>Days</th><th>Updated</th></tr></thead><tbody>
-        <% (recent_docs||[]).forEach(d=>{ %>
-          <tr onclick="location.href='/app?page=edit_document&id=<%= d._id %>'" style="cursor:pointer">
-            <td><strong><%= d.doc_number %></strong></td><td><span class="chip"><%= d.type %></span></td>
-            <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= d.title %></td>
-            <td><%= d.discipline||'—' %></td><td><%- sBadge(d.status) %></td>
-            <td style="<%= d.days_open>14?'color:#dc2626;font-weight:700':'' %>"><%= d.days_open||0 %></td>
-            <td style="font-size:11px;color:var(--muted)"><%= fmt(d.updated_at) %></td>
-          </tr>
-        <% }) %>
-        <% if(!(recent_docs||[]).length){ %><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No documents yet. Import Excel to begin.</td></tr><% } %>
-        </tbody></table></div>
-      </div>
-    <% } %>
-    <% if(page==='weekly_summary'){ %>
-      <div class="cardx no-print d-flex gap-2"><button class="btnx" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / PDF</button></div>
-      <div class="cardx">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px">
-          <div>
-            <div class="sec" style="margin:0">Project Status Summary — Weekly Meeting</div>
-            <div style="font-size:13px;color:var(--muted)"><%= b.project_name %> · <%= b.project_number %> · <%= new Date().toLocaleDateString('en-GB') %></div>
-            <div style="font-size:12px;color:var(--muted)">Client: <%= b.client_name||'—' %> · Consultant: <%= b.consultant_name||'—' %> · Contractor: <%= b.contractor_name||'—' %></div>
-          </div>
-          <% if(b.project_logo||b.company_logo){ %><img src="/uploads/<%= b.project_logo||b.company_logo %>" style="height:48px;object-fit:contain"/><% } %>
-        </div>
-        <p style="font-size:14px;line-height:1.7">
-          This week:<br/>
-          • <strong><%= week_count||0 %></strong> documents submitted<br/>
-          • <strong><%= approved_count||0 %></strong> approved (overall)<br/>
-          • <strong><%= pending_count||0 %></strong> pending<br/>
-          • <strong><%= rejected_count||0 %></strong> rejected<br/>
-          • <strong><%= overdue_count||0 %></strong> overdue<br/><br/>
-          Overall document approval rate is <strong><%= approval_rate||0 %>%</strong>.
-        </p>
-        <div class="sec">Discipline Snapshot</div>
-        <div class="table-responsive"><table class="tbl"><thead><tr><th>Discipline</th><th>Total</th></tr></thead><tbody>
-        <% Object.keys(by_discipline||{}).forEach(k=>{ %><tr><td><%= k %></td><td><%= by_discipline[k] %></td></tr><% }) %>
-        </tbody></table></div>
-        <div class="sec" style="margin-top:18px">Top Pending Items</div>
-        <div class="table-responsive"><table class="tbl"><thead><tr><th>Doc No</th><th>Type</th><th>Title</th><th>Status</th><th>Days Open</th></tr></thead><tbody>
-        <% (top_pending||[]).forEach(d=>{ %>
-          <tr><td><strong><%= d.doc_number %></strong></td><td><span class="chip"><%= d.type %></span></td><td><%= d.title %></td><td><%- sBadge(d.status) %></td><td style="color:#dc2626;font-weight:700"><%= d.days_open||0 %></td></tr>
-        <% }) %>
-        <% if(!(top_pending||[]).length){ %><tr><td colspan="5" style="text-align:center;color:var(--muted)">No pending items</td></tr><% } %>
-        </tbody></table></div>
-        <div style="margin-top:20px;font-size:12px;color:var(--muted)">Prepared by: <%= user.full_name %> · <%= b.company_name %></div>
-      </div>
-    <% } %>
-    <% if(page==='document_register'||page==='my_submissions'){ %>
-      <form class="filter no-print" method="GET" action="/app">
-        <input type="hidden" name="page" value="<%= page %>"/>
-        <select name="type" class="inp" style="width:auto;min-width:100px"><option value="">Type</option><% (doc_types||[]).forEach(t=>{ %><option value="<%= t %>" <%= f_type===t?'selected':'' %>><%= t %></option><% }) %></select>
-        <select name="discipline" class="inp" style="width:auto;min-width:100px"><option value="">Discipline</option><% (disciplines||[]).forEach(d=>{ %><option value="<%= d %>" <%= f_discipline===d?'selected':'' %>><%= d %></option><% }) %></select>
-        <select name="status" class="inp" style="width:auto;min-width:110px"><option value="">Status</option><% (statuses||[]).forEach(s=>{ %><option value="<%= s %>" <%= f_status===s?'selected':'' %>><%= s %></option><% }) %></select>
-        <select name="contractor" class="inp" style="width:auto;min-width:110px"><option value="">Contractor</option><% (contractors||[]).forEach(c=>{ %><option value="<%= c %>" <%= f_contractor===c?'selected':'' %>><%= c %></option><% }) %></select>
-        <input class="inp" style="width:auto;min-width:140px" name="search" value="<%= f_search %>" placeholder="Search…"/>
-        <input class="inp" style="width:auto" type="date" name="from" value="<%= f_from %>"/>
-        <input class="inp" style="width:auto" type="date" name="to" value="<%= f_to %>"/>
-        <button class="btnx" type="submit">Apply</button>
-        <a class="btno" href="/app?page=<%= page %>">Reset</a>
-        <div style="flex:1"></div>
-        <% if(canEditDocs){ %><a class="btnx" href="/app?page=add_document">+ Add</a><% } %>
-        <button class="btno" type="button" onclick="exportCSV()">CSV</button>
-        <button class="btno" type="button" onclick="window.print()">Print</button>
-      </form>
-      <div class="cardx"><div class="table-responsive"><table class="tbl" id="registerTable"><thead><tr>
-        <th>#</th><th>Doc Number</th><th>Type</th><th>Title</th><th>Rev</th><th>Status</th><th>Discipline</th><th>Contractor</th><th>Issue</th><th>Due</th><th>Days</th><% if(canEditDocs){ %><th>Actions</th><% } %>
-      </tr></thead><tbody>
-      <% (documents||[]).forEach((d,i)=>{ %>
-        <tr>
-          <td style="color:var(--muted)"><%= i+1 %></td>
-          <td><strong><%= d.doc_number %></strong></td>
-          <td><span class="chip"><%= d.type %></span></td>
-          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<%= d.title %>"><%= d.title %></td>
-          <td><%= d.rev %></td><td><%- sBadge(d.status) %></td>
-          <td><%= d.discipline||'—' %></td><td style="font-size:11px"><%= d.contractor||'—' %></td>
-          <td style="font-size:11px"><%= fmt(d.issue_date) %></td><td style="font-size:11px"><%= fmt(d.due_date) %></td>
-          <td style="<%= d.days_open>14?'color:#dc2626;font-weight:700':'' %>"><%= d.days_open||0 %></td>
-          <% if(canEditDocs){ %><td class="no-print">
-            <a href="/app?page=edit_document&id=<%= d._id %>" style="color:var(--accent)"><i class="fa-solid fa-pen"></i></a>
-            <a href="/app?page=document_register&delete=1&table=documents&id=<%= d._id %>" onclick="return confirm('Delete <%= d.doc_number %>?')" style="color:#dc2626;margin-left:8px"><i class="fa-solid fa-trash"></i></a>
-          </td><% } %>
-        </tr>
-      <% }) %>
-      <% if(!(documents||[]).length){ %><tr><td colspan="12" style="text-align:center;padding:28px;color:var(--muted)">No documents found</td></tr><% } %>
-      </tbody></table></div></div>
-    <% } %>
-    <% if(page==='add_document'||page==='edit_document'){ const isEdit=page==='edit_document'&&doc; %>
-      <div class="cardx">
-        <div class="sec"><%= isEdit?'Edit Document':'Add Document' %></div>
-        <form method="POST" action="/app?page=<%= page %>" enctype="multipart/form-data">
-          <input type="hidden" name="action" value="<%= isEdit?'update_document':'add_document' %>"/>
-          <% if(isEdit){ %><input type="hidden" name="id" value="<%= doc._id %>"/><% } %>
-          <div class="row g-3">
-            <div class="col-md-6"><label class="label">Doc Number</label><input class="inp" name="doc_number" value="<%= isEdit?doc.doc_number:'' %>" placeholder="Auto if blank"/></div>
-            <div class="col-md-6"><label class="label">Type *</label><input class="inp" name="type" list="typeList" value="<%= isEdit?doc.type:'' %>" required/><datalist id="typeList"><% (doc_types||[]).forEach(t=>{ %><option value="<%= t %>"><% }) %></datalist></div>
-            <div class="col-md-12"><label class="label">Title *</label><input class="inp" name="title" value="<%= isEdit?doc.title:'' %>" required/></div>
-            <div class="col-md-4"><label class="label">Rev</label><input class="inp" name="rev" value="<%= isEdit?doc.rev:'A' %>"/></div>
-            <div class="col-md-4"><label class="label">Status</label><input class="inp" name="status" list="statusList" value="<%= isEdit?doc.status:'Open' %>"/><datalist id="statusList"><% (statuses||[]).forEach(s=>{ %><option value="<%= s %>"><% }) %></datalist></div>
-            <div class="col-md-4"><label class="label">Discipline</label><input class="inp" name="discipline" list="discList" value="<%= isEdit?doc.discipline:'' %>"/><datalist id="discList"><% (disciplines||[]).forEach(d=>{ %><option value="<%= d %>"><% }) %></datalist></div>
-            <div class="col-md-4"><label class="label">Area</label><input class="inp" name="area" value="<%= isEdit?doc.area:'' %>"/></div>
-            <div class="col-md-4"><label class="label">Package</label><input class="inp" name="package" value="<%= isEdit?doc.package:'' %>"/></div>
-            <div class="col-md-4"><label class="label">Contractor</label><input class="inp" name="contractor" list="contrList" value="<%= isEdit?doc.contractor:'' %>"/><datalist id="contrList"><% (contractors||[]).forEach(c=>{ %><option value="<%= c %>"><% }) %></datalist></div>
-            <div class="col-md-4"><label class="label">Consultant</label><input class="inp" name="consultant" value="<%= isEdit?doc.consultant:'' %>"/></div>
-            <div class="col-md-4"><label class="label">Issue Date</label><input class="inp" type="date" name="issue_date" value="<%= isEdit&&doc.issue_date?new Date(doc.issue_date).toISOString().slice(0,10):'' %>"/></div>
-            <div class="col-md-4"><label class="label">Due Date</label><input class="inp" type="date" name="due_date" value="<%= isEdit&&doc.due_date?new Date(doc.due_date).toISOString().slice(0,10):'' %>"/></div>
-            <div class="col-md-4"><label class="label">Response Date</label><input class="inp" type="date" name="response_date" value="<%= isEdit&&doc.response_date?new Date(doc.response_date).toISOString().slice(0,10):'' %>"/></div>
-            <div class="col-md-4"><label class="label">Submitted By</label><input class="inp" name="submitted_by" value="<%= isEdit?doc.submitted_by:'' %>"/></div>
-            <div class="col-md-4"><label class="label">Reviewer</label><input class="inp" name="reviewer" value="<%= isEdit?doc.reviewer:'' %>"/></div>
-            <div class="col-md-4"><label class="label">Approver</label><input class="inp" name="approver" value="<%= isEdit?doc.approver:'' %>"/></div>
-            <div class="col-12"><label class="label">Remarks</label><textarea class="inp" name="remarks" rows="3"><%= isEdit?doc.remarks:'' %></textarea></div>
-            <% if(isEdit){ %><div class="col-12"><label class="label">Change Note</label><input class="inp" name="change_note"/></div><% } %>
-            <div class="col-12"><label class="label">Attachments</label><input class="inp" type="file" name="attachments" multiple/></div>
-          </div>
-          <div class="mt-3 d-flex gap-2"><button class="btnx" type="submit">Save</button><a class="btno" href="/app?page=document_register">Cancel</a></div>
-        </form>
-      </div>
-    <% } %>
-    <% if(page==='transmittals'){ %>
-      <div class="no-print mb-3"><a class="btnx" href="/app?page=create_transmittal">+ Create Transmittal</a></div>
-      <div class="cardx"><div class="table-responsive"><table class="tbl"><thead><tr><th>No</th><th>Title</th><th>To</th><th>By</th><th>Docs</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>
-      <% (transmittals||[]).forEach(t=>{ %>
-        <tr>
-          <td><strong><%= t.transmittal_no %></strong></td><td><%= t.title||'—' %></td><td><%= t.issued_to||'—' %></td>
-          <td><%= t.issued_by?t.issued_by.full_name:'—' %></td><td><span class="chip"><%= t.documents?t.documents.length:0 %></span></td>
-          <td><%- sBadge(t.status) %></td><td style="font-size:11px"><%= fmt(t.created_at) %></td>
-          <td class="no-print">
-            <% if(t.status==='Draft'&&canEditDocs){ %><form method="POST" action="/app?page=transmittals" style="display:inline"><input type="hidden" name="action" value="issue_transmittal"/><input type="hidden" name="id" value="<%= t._id %>"/><button class="btnx" style="padding:4px 10px;font-size:11px">Issue</button></form><% } %>
-            <% if(t.status==='Issued'&&canReview){ %><form method="POST" action="/app?page=transmittals" style="display:inline"><input type="hidden" name="action" value="acknowledge_transmittal"/><input type="hidden" name="id" value="<%= t._id %>"/><button class="btng">Ack</button></form><% } %>
-          </td>
-        </tr>
-      <% }) %>
-      <% if(!(transmittals||[]).length){ %><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No transmittals</td></tr><% } %>
-      </tbody></table></div></div>
-    <% } %>
-    <% if(page==='create_transmittal'){ %>
-      <div class="cardx">
-        <div class="sec">Create Transmittal</div>
-        <form method="POST" action="/app?page=transmittals">
-          <input type="hidden" name="action" value="create_transmittal"/>
-          <div class="row g-3 mb-3">
-            <div class="col-md-6"><label class="label">Title</label><input class="inp" name="title" required/></div>
-            <div class="col-md-6"><label class="label">Issued To</label><input class="inp" name="issued_to" required/></div>
-            <div class="col-12"><label class="label">Remarks</label><textarea class="inp" name="remarks" rows="2"></textarea></div>
-          </div>
-          <label class="label">Select Documents</label>
-          <div style="max-height:320px;overflow:auto;border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin-bottom:14px">
-            <% (documents||[]).forEach(d=>{ %>
-              <label style="display:flex;gap:10px;align-items:center;padding:6px;cursor:pointer">
-                <input type="checkbox" name="document_ids[]" value="<%= d._id %>"/>
-                <span class="chip"><%= d.type %></span><strong style="font-size:12px"><%= d.doc_number %></strong>
-                <span style="font-size:12px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= d.title %></span>
-              </label>
-            <% }) %>
-          </div>
-          <button class="btnx" type="submit">Create</button>
-          <a class="btno" href="/app?page=transmittals">Cancel</a>
-        </form>
-      </div>
-    <% } %>
-    <% if(page==='revisions'){ %>
-      <div class="cardx"><div class="sec">Revision History</div>
-        <div class="table-responsive"><table class="tbl"><thead><tr><th>Doc</th><th>Rev</th><th>Note</th><th>By</th><th>When</th></tr></thead><tbody>
-        <% (revisions||[]).forEach(r=>{ %>
-          <tr><td><strong><%= r.document_id?r.document_id.doc_number:'—' %></strong></td><td><%= r.rev %></td><td><%= r.change_note||'—' %></td><td><%= r.changed_by?r.changed_by.full_name:'—' %></td><td style="font-size:11px"><%= fmt(r.changed_at) %></td></tr>
-        <% }) %>
-        </tbody></table></div>
-      </div>
-    <% } %>
-    <% if(page==='manage_users'&&canManageUsers){ %>
-      <div class="no-print mb-3"><button class="btnx" data-bs-toggle="modal" data-bs-target="#addUserModal">+ Add User</button></div>
-      <div class="cardx"><div class="table-responsive"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Actions</th></tr></thead><tbody>
-      <% (users||[]).forEach(u=>{ %>
-        <tr>
-          <td><strong><%= u.full_name %></strong></td><td><%= u.email %></td><td><%- roleBadge(u.role) %></td><td><%= u.company||'—' %></td>
-          <td class="no-print">
-            <button class="btno" style="padding:4px 8px;font-size:11px" onclick="openReset('<%= u._id %>','<%= u.full_name %>')">Reset Password</button>
-            <% if(String(u._id)!==String(user._id)){ %>
-            <a class="btnd" style="text-decoration:none" href="/app?page=manage_users&delete=1&table=users&id=<%= u._id %>" onclick="return confirm('Delete user?')">Delete</a>
-            <% } %>
-          </td>
-        </tr>
-      <% }) %>
-      </tbody></table></div></div>
-      <div class="modal fade" id="addUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="border-radius:14px">
-        <form method="POST" action="/app?page=manage_users"><input type="hidden" name="action" value="add_user"/>
-        <div class="modal-header" style="background:#0f172a;color:#fff"><h5 class="modal-title font-head">Add User</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <label class="label">Full Name</label><input class="inp mb-2" name="full_name" required/>
-          <label class="label">Email</label><input class="inp mb-2" type="email" name="email" required/>
-          <label class="label">Password</label><input class="inp mb-2" name="password" value="ChangeMe@123"/>
-          <label class="label">Role</label>
-          <select class="inp mb-2" name="role">
-            <option value="document_controller">Document Controller</option>
-            <option value="reviewer">Reviewer</option>
-            <option value="viewer">Viewer</option>
-            <option value="admin">Admin</option>
-            <% if(user.role==='super_admin'){ %><option value="super_admin">Super Admin</option><% } %>
-          </select>
-          <label class="label">Company</label><input class="inp mb-2" name="company"/>
-          <label class="label">Phone</label><input class="inp" name="phone"/>
-        </div>
-        <div class="modal-footer"><button type="button" class="btno" data-bs-dismiss="modal">Cancel</button><button class="btnx" type="submit">Create</button></div>
-        </form>
-      </div></div></div>
-      <div class="modal fade" id="resetModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="border-radius:14px">
-        <form method="POST" action="/app?page=manage_users"><input type="hidden" name="action" value="reset_password"/><input type="hidden" name="id" id="resetId"/>
-        <div class="modal-header" style="background:#0f172a;color:#fff"><h5 class="modal-title font-head">Reset Password</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <p id="resetName" style="font-size:13px"></p>
-          <label class="label">New Password</label><input class="inp" name="new_password" required minlength="6"/>
-        </div>
-        <div class="modal-footer"><button type="button" class="btno" data-bs-dismiss="modal">Cancel</button><button class="btnx" type="submit">Reset</button></div>
-        </form>
-      </div></div></div>
-    <% } %>
-    <% if(page==='branding'&&canManageUsers){ %>
-      <div class="cardx">
-        <div class="sec">Company & Project Branding</div>
-        <form method="POST" action="/app?page=branding" enctype="multipart/form-data">
-          <input type="hidden" name="action" value="update_branding"/>
-          <div class="row g-3">
-            <div class="col-md-6"><label class="label">Company Name</label><input class="inp" name="company_name" value="<%= b.company_name||'' %>"/></div>
-            <div class="col-md-6"><label class="label">Project Name</label><input class="inp" name="project_name" value="<%= b.project_name||'' %>"/></div>
-            <div class="col-md-4"><label class="label">Project Number</label><input class="inp" name="project_number" value="<%= b.project_number||'' %>"/></div>
-            <div class="col-md-4"><label class="label">Contract Number</label><input class="inp" name="contract_number" value="<%= b.contract_number||'' %>"/></div>
-            <div class="col-md-4"><label class="label">Client Name</label><input class="inp" name="client_name" value="<%= b.client_name||'' %>"/></div>
-            <div class="col-md-6"><label class="label">Consultant Name</label><input class="inp" name="consultant_name" value="<%= b.consultant_name||'' %>"/></div>
-            <div class="col-md-6"><label class="label">Contractor Name</label><input class="inp" name="contractor_name" value="<%= b.contractor_name||'' %>"/></div>
-            <div class="col-md-4"><label class="label">Company Logo</label><input class="inp" type="file" name="company_logo" accept="image/*"/><% if(b.company_logo){ %><img src="/uploads/<%= b.company_logo %>" style="height:40px;margin-top:6px"/><% } %></div>
-            <div class="col-md-4"><label class="label">Client Logo</label><input class="inp" type="file" name="client_logo" accept="image/*"/><% if(b.client_logo){ %><img src="/uploads/<%= b.client_logo %>" style="height:40px;margin-top:6px"/><% } %></div>
-            <div class="col-md-4"><label class="label">Project Logo</label><input class="inp" type="file" name="project_logo" accept="image/*"/><% if(b.project_logo){ %><img src="/uploads/<%= b.project_logo %>" style="height:40px;margin-top:6px"/><% } %></div>
-            <div class="col-md-6"><label class="label">Consultant Logo</label><input class="inp" type="file" name="consultant_logo" accept="image/*"/></div>
-            <div class="col-md-6"><label class="label">Contractor Logo</label><input class="inp" type="file" name="contractor_logo" accept="image/*"/></div>
-          </div>
-          <button class="btnx mt-3" type="submit">Save Branding</button>
-        </form>
-      </div>
-    <% } %>
-    <% if(page==='reports'){ %>
-      <div class="no-print mb-3 d-flex gap-2"><button class="btnx" onclick="window.print()">Print Report</button><button class="btno" onclick="exportCSV()">Export CSV</button></div>
-      <div class="row g-3 mb-3">
-        <div class="col-6 col-md-3"><div class="kpi k-teal"><div class="lbl">Total</div><div class="val"><%= total_documents||0 %></div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi k-green"><div class="lbl">Approved</div><div class="val"><%= approved_count||0 %></div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi k-amber"><div class="lbl">Pending</div><div class="val"><%= pending_count||0 %></div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi k-red"><div class="lbl">Overdue</div><div class="val"><%= overdue_count||0 %></div></div></div>
-      </div>
-      <div class="cardx">
-        <div class="sec">Overdue Documents</div>
-        <div class="table-responsive"><table class="tbl" id="registerTable"><thead><tr><th>Doc No</th><th>Type</th><th>Title</th><th>Discipline</th><th>Due</th><th>Days</th></tr></thead><tbody>
-        <% (overdue_docs||[]).forEach(d=>{ %>
-          <tr><td><strong><%= d.doc_number %></strong></td><td><span class="chip"><%= d.type %></span></td><td><%= d.title %></td><td><%= d.discipline||'—' %></td><td><%= fmt(d.due_date) %></td><td style="color:#dc2626;font-weight:800"><%= d.days_open %></td></tr>
-        <% }) %>
-        <% if(!(overdue_docs||[]).length){ %><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px">No overdue documents</td></tr><% } %>
-        </tbody></table></div>
-      </div>
-      <div class="cardx">
-        <div class="sec">Status Breakdown</div>
-        <div class="table-responsive"><table class="tbl"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>
-        <% Object.keys(by_status||{}).forEach(k=>{ %><tr><td><%- sBadge(k) %></td><td><strong><%= by_status[k] %></strong></td></tr><% }) %>
-        </tbody></table></div>
-      </div>
-    <% } %>
-    <% if(page==='notifications'&&canManageUsers){ %>
-      <div class="row g-3">
-        <div class="col-md-5"><div class="cardx"><div class="sec">Send Notification</div>
-          <form method="POST" action="/app?page=notifications">
-            <input type="hidden" name="action" value="send_notification"/>
-            <label class="label">Audience</label>
-            <select class="inp mb-2" name="type">
-              <option value="all">All</option>
-              <option value="document_controller">Document Controllers</option>
-              <option value="reviewer">Reviewers</option>
-              <option value="viewer">Viewers</option>
-              <option value="admin">Admins</option>
+
+<!-- STATUS UPDATE MODAL -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-hdr"><h3>Update Document Status</h3><button class="modal-close" onclick="closeModal('statusModal')">✕</button></div>
+    <form method="POST" action="/app?page=document_register">
+      <input type="hidden" name="action" value="update_status"/>
+      <input type="hidden" name="id" id="statusDocId"/>
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Document</label><input type="text" id="statusDocNum" class="form-control" readonly/></div>
+        <div class="g2">
+          <div class="form-group"><label class="form-label">New Status *</label>
+            <select name="status" class="form-control" id="statusSel">
+              <% const statusOpts=[...new Set([...( statuses||[]),'Open','Under Review','Approved','Rejected','Closed','Pending','Revise & Resubmit','Submitted','Returned','Cancelled'])]; %>
+              <% statusOpts.forEach(s=>{%><option value="<%=s%>"><%=s%></option><%})%>
             </select>
-            <label class="label">Message</label>
-            <textarea class="inp mb-2" name="message" rows="4" required></textarea>
-            <button class="btnx" type="submit">Send</button>
-          </form>
-        </div></div>
-        <div class="col-md-7"><div class="cardx"><div class="sec">History</div>
-          <% (notifications||[]).forEach(n=>{ %>
-            <div style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13px">
-              <%= n.message %><div style="font-size:10px;color:var(--muted)"><%= n.type %> · <%= fmt(n.created_at) %></div>
-            </div>
-          <% }) %>
-        </div></div>
+          </div>
+          <div class="form-group"><label class="form-label">Response Date</label><input type="date" name="response_date" class="form-control"/></div>
+        </div>
+        <div class="form-group"><label class="form-label">Remarks</label><textarea name="remarks" class="form-control" rows="3"></textarea></div>
       </div>
-    <% } %>
-    <% if(page==='my_notifications'){ %>
-      <div class="cardx"><div class="sec">My Notifications</div>
-        <% (notifs||[]).forEach(n=>{ %>
-          <div style="padding:12px 0;border-bottom:1px solid #f1f5f9"><div style="font-size:13px"><%= n.message %></div><div style="font-size:11px;color:var(--muted)"><%= fmt(n.created_at) %></div></div>
-        <% }) %>
-        <% if(!(notifs||[]).length){ %><div style="text-align:center;color:var(--muted);padding:30px">No notifications</div><% } %>
-      </div>
-    <% } %>
-    <% if(page==='profile'){ %>
-      <div class="cardx" style="max-width:480px">
-        <div class="sec">Change Password</div>
-        <form method="POST" action="/app?page=profile">
-          <input type="hidden" name="action" value="change_own_password"/>
-          <label class="label">Current Password</label><input class="inp mb-2" type="password" name="current_password" required/>
-          <label class="label">New Password</label><input class="inp mb-2" type="password" name="new_password" required minlength="6"/>
-          <button class="btnx" type="submit">Update Password</button>
-        </form>
-      </div>
-    <% } %>
-    <div class="footer"><%= b.company_name||'EDMS' %> · <%= b.project_name||'' %> · Enterprise Document Control System</div>
+      <div class="modal-footer"><button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('statusModal')">Cancel</button><button type="submit" class="btn btn-primary btn-sm">Update Status</button></div>
+    </form>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- MAIN CONTENT -->
+<div class="main"><div class="content">
+<%if(success_msg){%><div class="alert-success"><i class="fa-solid fa-circle-check"></i><%=success_msg%></div><%}%>
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<%if(page==='dashboard'){%>
+
+<%if(isEditor){%>
+<div class="import-banner no-print">
+  <div style="flex:1;">
+    <div class="it1">📥 Import Document Register</div>
+    <div class="it2">Upload your JSON export to bulk-import or update documents. Safe to re-run — updates existing records, never creates duplicates.</div>
+    <div class="import-result" id="importResult"></div>
+  </div>
+  <input type="file" id="importFile" accept=".json" style="display:none;"/>
+  <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-file-arrow-up"></i> Choose JSON</button>
+  <button class="btn btn-primary btn-sm" id="importBtn" disabled onclick="doImport()"><i class="fa-solid fa-database"></i> Import</button>
+</div>
+<%}%>
+
+<!-- KPI CARDS -->
+<div class="kpi-grid">
+  <div class="kpi kc-teal"><div class="kpi-icon">📋</div><div class="kpi-label">Total Documents</div><div class="kpi-val"><%=fmtNum(total_documents)%></div><div class="kpi-sub">all records</div></div>
+  <div class="kpi kc-green"><div class="kpi-icon">✅</div><div class="kpi-label">Approved</div><div class="kpi-val"><%=fmtNum(approved_count)%></div><div class="kpi-sub"><%=approval_rate%>% rate</div></div>
+  <div class="kpi kc-amber"><div class="kpi-icon">🔍</div><div class="kpi-label">Under Review</div><div class="kpi-val"><%=fmtNum(review_count)%></div><div class="kpi-sub">awaiting response</div></div>
+  <div class="kpi kc-orange"><div class="kpi-icon">⏳</div><div class="kpi-label">Active / Open</div><div class="kpi-val"><%=fmtNum(active_count)%></div><div class="kpi-sub">not closed</div></div>
+  <div class="kpi kc-red"><div class="kpi-icon">⚠️</div><div class="kpi-label">Overdue</div><div class="kpi-val"><%=fmtNum(overdue_count)%></div><div class="kpi-sub">past due date</div></div>
+  <div class="kpi kc-pink"><div class="kpi-icon">🔄</div><div class="kpi-label">Revise & Resub.</div><div class="kpi-val"><%=fmtNum(rr_count)%></div><div class="kpi-sub">needs correction</div></div>
+  <div class="kpi kc-indigo"><div class="kpi-icon">📤</div><div class="kpi-label">Transmittals</div><div class="kpi-val"><%=fmtNum(total_transmittals)%></div><div class="kpi-sub">issued</div></div>
+  <div class="kpi kc-sky"><div class="kpi-icon">📅</div><div class="kpi-label">Submitted Today</div><div class="kpi-val"><%=fmtNum(submitted_today)%></div><div class="kpi-sub">today</div></div>
+  <div class="kpi kc-slate"><div class="kpi-icon">📆</div><div class="kpi-label">This Week</div><div class="kpi-val"><%=fmtNum(submitted_week)%></div><div class="kpi-sub">last 7 days</div></div>
+  <div class="kpi kc-purple"><div class="kpi-icon">📊</div><div class="kpi-label">Approval Rate</div><div class="kpi-val"><%=approval_rate%>%</div><div class="kpi-sub"><%=approval_rate>=80?'✓ On target':'Below 80%'%></div></div>
+</div>
+
+<!-- CHARTS -->
+<div class="g-8-4">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Document Type Volume</div><span class="card-badge">Dynamic · Live from DB</span></div>
+    <div class="chart-box ch260"><canvas id="chartType"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Status Distribution</div><span class="card-badge">Doughnut</span></div>
+    <div class="chart-box ch260"><canvas id="chartStatus"></canvas></div>
+  </div>
+</div>
+<div class="g-2">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Monthly Submission Trend</div><span class="card-badge">12 Months</span></div>
+    <div class="chart-box ch220"><canvas id="chartMonthly"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Discipline Breakdown</div><span class="card-badge">Horizontal Bar</span></div>
+    <div class="chart-box ch220"><canvas id="chartDisc"></canvas></div>
+  </div>
+</div>
+
+<!-- TYPE × DISCIPLINE × STATUS MATRIX -->
+<%if(Object.keys(matrix||{}).length){%>
+<div class="card">
+  <div class="card-header"><div class="card-title">Document Type × Discipline × Status Analysis</div><span class="card-badge">Auto-updated from register</span></div>
+  <div class="disc-grid">
+  <%Object.keys(matrix||{}).sort().forEach(type=>{const discMap=matrix[type]||{};const discs=Object.keys(discMap).sort();const allSt=statuses||[];%>
+  <div class="disc-card">
+    <div class="disc-card-hdr"><span class="disc-card-type"><%=type%></span><span class="disc-card-sub">By Discipline & Status</span></div>
+    <table class="disc-tbl">
+      <thead><tr><th>Discipline</th><%allSt.slice(0,5).forEach(s=>{%><th><%=s.length>7?s.slice(0,6)+'…':s%></th><%})%><th>Total</th></tr></thead>
+      <tbody>
+      <%let typeTotal=0;const grandRow={};discs.forEach(disc=>{const sm=discMap[disc]||{};const rowTotal=Object.values(sm).reduce((a,b)=>a+b,0);typeTotal+=rowTotal;allSt.forEach(s=>{grandRow[s]=(grandRow[s]||0)+(sm[s]||0);});%>
+      <tr>
+        <td><%=disc%></td>
+        <%allSt.slice(0,5).forEach(s=>{const v=sm[s]||0;%><td style="text-align:center;color:<%=v?sHex(s):'#d1d5db'%>;"><%=v||'—'%></td><%})%>
+        <td style="text-align:center;font-weight:800;"><%=rowTotal%></td>
+      </tr>
+      <%});%>
+      <tr class="dtr">
+        <td>Grand Total</td>
+        <%allSt.slice(0,5).forEach(s=>{%><td style="text-align:center;"><%=grandRow[s]||'—'%></td><%})%>
+        <td style="text-align:center;"><strong><%=typeTotal%></strong></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <%});%>
+  </div>
+</div>
+<%}%>
+
+<!-- RECENT DOCS -->
+<div class="card">
+  <div class="card-header"><div class="card-title">Recent Documents</div><a href="/app?page=document_register" class="btn btn-outline btn-sm no-print">View All →</a></div>
+  <div class="tbl-wrap">
+    <table class="dcs">
+      <thead><tr><th>Doc Number</th><th>Type</th><th>Title</th><th>Discipline</th><th>Status</th><th>Days Open</th><th>Contractor</th><th>Updated</th></tr></thead>
+      <tbody>
+      <%if(recent_docs&&recent_docs.length){recent_docs.forEach(d=>{%>
+      <tr onclick="location.href='/app?page=edit_document&id=<%=d._id%>'" style="cursor:pointer;">
+        <td><strong style="font-family:monospace;font-size:12px;"><%=d.doc_number%></strong></td>
+        <td><span class="chip"><%=d.type%></span></td>
+        <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<%=d.title%>"><%=d.title%></td>
+        <td style="font-size:11px;"><%=d.discipline||'—'%></td>
+        <td><%- sPill(d.status) %></td>
+        <td class="<%=d.days_open>14&&!['Approved','Closed'].includes(d.status)?'days-overdue':''%>"><%=d.days_open||0%></td>
+        <td style="font-size:11px;"><%=d.contractor||'—'%></td>
+        <td style="font-size:11px;color:var(--muted);"><%=fmtDate(d.updated_at)%></td>
+      </tr>
+      <%})}else{%><tr class="no-data"><td colspan="8">No documents yet. Use the Import card above to load your register.</td></tr><%}%>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ DOCUMENT REGISTER / MY SUBMISSIONS ══════════ -->
+<%}else if(page==='document_register'||page==='my_submissions'){%>
+<form method="GET" action="/app" class="filter-bar no-print">
+  <input type="hidden" name="page" value="<%=page%>"/>
+  <span class="fl">Type</span>
+  <select name="type" class="fs"><option value="">All</option><%( doc_types||[]).forEach(t=>{%><option value="<%=t%>" <%=f_type===t?'selected':''%>><%=t%></option><%})%></select>
+  <span class="fl">Discipline</span>
+  <select name="discipline" class="fs"><option value="">All</option><%(disciplines||[]).forEach(d=>{%><option value="<%=d%>" <%=f_discipline===d?'selected':''%>><%=d%></option><%})%></select>
+  <span class="fl">Status</span>
+  <select name="status" class="fs"><option value="">All</option><%(statuses||[]).forEach(s=>{%><option value="<%=s%>" <%=f_status===s?'selected':''%>><%=s%></option><%})%></select>
+  <%if(page!=='my_submissions'){%>
+  <span class="fl">Contractor</span>
+  <select name="contractor" class="fs"><option value="">All</option><%(contractors||[]).forEach(c=>{%><option value="<%=c%>" <%=f_contractor===c?'selected':''%>><%=c%></option><%})%></select>
+  <%}%>
+  <span class="fl">From</span><input type="date" name="date_from" class="fs" value="<%=f_date_from%>"/>
+  <span class="fl">To</span><input type="date" name="date_to" class="fs" value="<%=f_date_to%>"/>
+  <input type="text" name="search" class="fsearch" placeholder="🔍 Search…" value="<%=f_search%>"/>
+  <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+  <a href="/app?page=<%=page%>" class="btn btn-ghost btn-sm">Reset</a>
+  <%if(isEditor){%><a href="/app?page=add_document" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add</a><%}%>
+  <button type="button" class="btn btn-ghost btn-sm" onclick="exportCSV()"><i class="fa-solid fa-download"></i> CSV</button>
+</form>
+<div class="card">
+  <div class="card-header"><div class="card-title"><%=page==='my_submissions'?'My Submissions':'Document Register'%> <span style="font-size:12px;color:var(--muted);font-weight:400;">(<%=(documents||[]).length%> records)</span></div></div>
+  <div class="tbl-wrap">
+    <table class="dcs" id="registerTable">
+      <thead><tr>
+        <th>#</th><th>Doc Number</th><th>Type</th><th>Title</th><th>Rev</th>
+        <th>Status</th><th>Discipline</th><th>Area</th><th>Priority</th>
+        <th>Contractor</th><th>Issue Date</th><th>Due Date</th><th>Days</th>
+        <%if(isEditor&&page!=='my_submissions'){%><th>Actions</th><%}%>
+      </tr></thead>
+      <tbody>
+      <%if(documents&&documents.length){documents.forEach((d,i)=>{%>
+      <tr>
+        <td style="color:var(--muted);font-size:11px;"><%=i+1%></td>
+        <td><strong style="font-family:monospace;font-size:12px;"><%=d.doc_number%></strong></td>
+        <td><span class="chip"><%=d.type%></span></td>
+        <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<%=d.title%>"><%=d.title%></td>
+        <td style="font-weight:700;"><%=d.rev%></td>
+        <td><%- sPill(d.status) %></td>
+        <td style="font-size:11px;"><%=d.discipline||'—'%></td>
+        <td style="font-size:11px;"><%=d.area||'—'%></td>
+        <td style="font-size:11px;font-weight:700;color:<%=d.priority==='Critical'?'#dc2626':d.priority==='High'?'#ea580c':'var(--muted)'%>;"><%=d.priority||'Normal'%></td>
+        <td style="font-size:11px;"><%=d.contractor||'—'%></td>
+        <td style="font-size:11px;"><%=fmtDate(d.issue_date)%></td>
+        <td style="font-size:11px;"><%=fmtDate(d.due_date)%></td>
+        <td class="<%=d.days_open>14&&!['Approved','Closed'].includes(d.status)?'days-overdue':''%>"><%=d.days_open||0%></td>
+        <%if(isEditor&&page!=='my_submissions'){%>
+        <td style="white-space:nowrap;">
+          <a href="/app?page=edit_document&id=<%=d._id%>" class="btn btn-icon btn-ghost" title="Edit"><i class="fa-solid fa-pen" style="color:var(--pc);"></i></a>
+          <button class="btn btn-icon btn-ghost" onclick="openStatusModal('<%=d._id%>','<%=d.doc_number%>','<%=d.status%>')" title="Status"><i class="fa-solid fa-circle-dot" style="color:#d97706;"></i></button>
+          <a href="/app?page=document_register&delete=1&table=documents&id=<%=d._id%>" class="btn btn-icon btn-ghost" onclick="return confirm('Delete <%=d.doc_number%>?')" title="Delete"><i class="fa-solid fa-trash" style="color:#dc2626;"></i></a>
+        </td>
+        <%}%>
+      </tr>
+      <%})}else{%><tr class="no-data"><td colspan="14">No documents match your filters.</td></tr><%}%>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ ADD / EDIT DOCUMENT ══════════ -->
+<%}else if(page==='add_document'||page==='edit_document'){%>
+<%const isEdit=page==='edit_document'&&doc;%>
+<div class="card">
+  <div class="card-header">
+    <div class="card-title"><%=isEdit?'Edit Document: '+doc.doc_number:'Add New Document'%></div>
+    <a href="/app?page=document_register" class="btn btn-ghost btn-sm no-print"><i class="fa-solid fa-arrow-left"></i> Back</a>
+  </div>
+  <form method="POST" action="/app?page=<%=isEdit?'edit_document':'add_document'%>" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="<%=isEdit?'update_document':'add_document'%>"/>
+    <%if(isEdit){%><input type="hidden" name="id" value="<%=doc._id%>"/><%}%>
+    <div class="g4">
+      <div class="form-group"><label class="form-label">Doc Number</label><input type="text" name="doc_number" class="form-control" value="<%=isEdit?doc.doc_number:''%>" placeholder="Auto-generated if blank"/></div>
+      <div class="form-group"><label class="form-label">Type *</label><input type="text" name="type" class="form-control" list="typeList" value="<%=isEdit?doc.type:''%>" required placeholder="WIR, RFI, NCR…"/><datalist id="typeList"><%( doc_types||[]).forEach(t=>{%><option value="<%=t%>"><%})%></datalist></div>
+      <div class="form-group"><label class="form-label">Title *</label><input type="text" name="title" class="form-control" value="<%=isEdit?doc.title:''%>" required/></div>
+      <div class="form-group"><label class="form-label">Revision</label><input type="text" name="rev" class="form-control" value="<%=isEdit?doc.rev:'A'%>"/></div>
+    </div>
+    <div class="g4">
+      <div class="form-group"><label class="form-label">Status</label>
+        <select name="status" class="form-control">
+          <%const sOpts=[...new Set([...( statuses||[]),'Open','Under Review','Approved','Rejected','Closed','Pending','Revise & Resubmit','Submitted','Returned'])];%>
+          <%sOpts.forEach(s=>{%><option value="<%=s%>" <%=isEdit&&doc.status===s?'selected':''%>><%=s%></option><%})%>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Priority</label>
+        <select name="priority" class="form-control">
+          <%['Normal','High','Critical','Low'].forEach(p=>{%><option <%=isEdit&&doc.priority===p?'selected':''%>><%=p%></option><%})%>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Discipline</label><input type="text" name="discipline" class="form-control" list="discList" value="<%=isEdit?doc.discipline:''%>"/><datalist id="discList"><%(disciplines||[]).forEach(d=>{%><option value="<%=d%>"><%})%></datalist></div>
+      <div class="form-group"><label class="form-label">Area / Zone</label><input type="text" name="area" class="form-control" list="areaList" value="<%=isEdit?doc.area:''%>"/><datalist id="areaList"><%(areas||[]).forEach(a=>{%><option value="<%=a%>"><%})%></datalist></div>
+    </div>
+    <div class="g4">
+      <div class="form-group"><label class="form-label">Package</label><input type="text" name="package" class="form-control" list="pkgList" value="<%=isEdit?doc.package:''%>"/><datalist id="pkgList"><%(packages||[]).forEach(p=>{%><option value="<%=p%>"><%})%></datalist></div>
+      <div class="form-group"><label class="form-label">Contractor</label><input type="text" name="contractor" class="form-control" list="contrList" value="<%=isEdit?doc.contractor:''%>"/><datalist id="contrList"><%(contractors||[]).forEach(c=>{%><option value="<%=c%>"><%})%></datalist></div>
+      <div class="form-group"><label class="form-label">Submitted By</label><input type="text" name="submitted_by" class="form-control" value="<%=isEdit?doc.submitted_by:''%>"/></div>
+      <div class="form-group"><label class="form-label">Reviewer</label><input type="text" name="reviewer" class="form-control" value="<%=isEdit?doc.reviewer:''%>"/></div>
+    </div>
+    <div class="g4">
+      <div class="form-group"><label class="form-label">Issue Date</label><input type="date" name="issue_date" class="form-control" value="<%=isEdit&&doc.issue_date?new Date(doc.issue_date).toISOString().split('T')[0]:''%>"/></div>
+      <div class="form-group"><label class="form-label">Due Date</label><input type="date" name="due_date" class="form-control" value="<%=isEdit&&doc.due_date?new Date(doc.due_date).toISOString().split('T')[0]:''%>"/></div>
+      <div class="form-group"><label class="form-label">Response Date</label><input type="date" name="response_date" class="form-control" value="<%=isEdit&&doc.response_date?new Date(doc.response_date).toISOString().split('T')[0]:''%>"/></div>
+      <div class="form-group"><label class="form-label">Days Open (auto)</label><input type="number" class="form-control" value="<%=isEdit?doc.days_open:0%>" readonly style="background:#f3f4f6;"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Remarks</label><textarea name="remarks" class="form-control" rows="3"><%=isEdit?doc.remarks:''%></textarea></div>
+    <%if(isEdit){%><div class="form-group"><label class="form-label">Change Note (for revision log)</label><input type="text" name="change_note" class="form-control" placeholder="Describe what changed…"/></div><%}%>
+    <div class="form-group">
+      <label class="form-label">Attachments (PDF, DWG, DOCX…)</label>
+      <input type="file" name="attachments" class="form-control" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.dwg,.zip"/>
+      <%if(isEdit&&doc.attachments&&doc.attachments.length){%>
+      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">
+        <%doc.attachments.forEach(a=>{%><a href="/uploads/<%=a%>" target="_blank" style="font-size:11px;color:var(--pc);background:var(--bg);padding:3px 9px;border-radius:5px;text-decoration:none;"><i class="fa-solid fa-paperclip"></i> <%=a.slice(0,30)%></a><%})%>
+      </div>
+      <%}%>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Document</button>
+      <a href="/app?page=document_register" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<!-- ══════════ TRANSMITTALS ══════════ -->
+<%}else if(page==='transmittals'){%>
+<div style="display:flex;justify-content:flex-end;margin-bottom:12px;" class="no-print">
+  <a href="/app?page=create_transmittal" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create Transmittal</a>
+</div>
+<div class="card">
+  <div class="tbl-wrap">
+    <table class="dcs">
+      <thead><tr><th>Transmittal No</th><th>Title</th><th>Issued To</th><th>Issued By</th><th># Docs</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+      <%if(transmittals&&transmittals.length){transmittals.forEach(t=>{%>
+      <tr>
+        <td><strong><%=t.transmittal_no%></strong></td>
+        <td><%=t.title||'—'%></td>
+        <td><%=t.issued_to||'—'%></td>
+        <td style="font-size:11px;"><%=t.issued_by?t.issued_by.full_name:'—'%></td>
+        <td><span class="chip"><%=t.documents?t.documents.length:0%></span></td>
+        <td><%- sPill(t.status) %></td>
+        <td style="font-size:11px;"><%=fmtDate(t.created_at)%></td>
+        <td style="white-space:nowrap;">
+          <%if(t.status==='Draft'){%>
+          <form method="POST" action="/app?page=transmittals" style="display:inline;">
+            <input type="hidden" name="action" value="issue_transmittal"/>
+            <input type="hidden" name="id" value="<%=t._id%>"/>
+            <button type="submit" class="btn btn-primary btn-sm">Issue</button>
+          </form>
+          <%}else if(t.status==='Issued'){%>
+          <form method="POST" action="/app?page=transmittals" style="display:inline;">
+            <input type="hidden" name="action" value="acknowledge_transmittal"/>
+            <input type="hidden" name="id" value="<%=t._id%>"/>
+            <button type="submit" class="btn btn-success btn-sm">Acknowledge</button>
+          </form>
+          <%}else{%><span style="font-size:11px;color:var(--muted);">Acknowledged ✓</span><%}%>
+          <%if(isAdmin){%>
+          <a href="/app?page=transmittals&delete=1&table=transmittals&id=<%=t._id%>" class="btn btn-icon btn-ghost" onclick="return confirm('Delete transmittal?')"><i class="fa-solid fa-trash" style="color:#dc2626;"></i></a>
+          <%}%>
+        </td>
+      </tr>
+      <%})}else{%><tr class="no-data"><td colspan="8">No transmittals yet.</td></tr><%}%>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ CREATE TRANSMITTAL ══════════ -->
+<%}else if(page==='create_transmittal'){%>
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Create New Transmittal</div>
+    <a href="/app?page=transmittals" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Back</a>
+  </div>
+  <form method="POST" action="/app?page=transmittals">
+    <input type="hidden" name="action" value="create_transmittal"/>
+    <div class="g3">
+      <div class="form-group"><label class="form-label">Transmittal No</label><input type="text" class="form-control" placeholder="Auto-generated" readonly style="background:#f3f4f6;"/></div>
+      <div class="form-group"><label class="form-label">Title *</label><input type="text" name="title" class="form-control" required/></div>
+      <div class="form-group"><label class="form-label">Issued To *</label><input type="text" name="issued_to" class="form-control" list="cList" required/><datalist id="cList"><%(contractors||[]).forEach(c=>{%><option value="<%=c%>"><%})%></datalist></div>
+    </div>
+    <div class="form-group"><label class="form-label">Remarks</label><textarea name="remarks" class="form-control" rows="2"></textarea></div>
+    <div class="form-group">
+      <label class="form-label">Select Documents to Include</label>
+      <div style="max-height:360px;overflow-y:auto;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;">
+      <%if(documents&&documents.length){documents.forEach(d=>{%>
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;margin-bottom:2px;transition:background .15s;" onmouseover="this.style.background='#f0f9f9'" onmouseout="this.style.background=''">
+        <input type="checkbox" name="document_ids[]" value="<%=d._id%>" style="accent-color:var(--pc);width:15px;height:15px;flex-shrink:0;"/>
+        <span class="chip" style="flex-shrink:0;"><%=d.type%></span>
+        <strong style="font-size:12px;font-family:monospace;flex-shrink:0;"><%=d.doc_number%></strong>
+        <span style="font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%=d.title%></span>
+        <%- sPill(d.status) %>
+      </label>
+      <%})}else{%><p style="color:var(--muted);font-size:13px;padding:10px;">No available documents.</p><%}%>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Create Transmittal</button>
+      <a href="/app?page=transmittals" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<!-- ══════════ REVISIONS ══════════ -->
+<%}else if(page==='revisions'){%>
+<div class="card">
+  <div class="card-header"><div class="card-title">Revision History (Last 100 entries)</div></div>
+  <div class="tbl-wrap">
+    <table class="dcs">
+      <thead><tr><th>Doc Number</th><th>Type</th><th>Rev</th><th>Change Note</th><th>Changed By</th><th>Date & Time</th></tr></thead>
+      <tbody>
+      <%if(revisions&&revisions.length){revisions.forEach(r=>{%>
+      <tr>
+        <td><strong style="font-family:monospace;"><%=r.document_id?r.document_id.doc_number:'—'%></strong></td>
+        <td><%if(r.document_id){%><span class="chip"><%=r.document_id.type%></span><%}else{%>—<%}%></td>
+        <td><strong><%=r.rev%></strong></td>
+        <td style="font-size:12px;"><%=r.change_note||'—'%></td>
+        <td style="font-size:11px;"><%=r.changed_by?r.changed_by.full_name:'System'%></td>
+        <td style="font-size:11px;"><%=fmtDate(r.changed_at)%></td>
+      </tr>
+      <%})}else{%><tr class="no-data"><td colspan="6">No revision history yet.</td></tr><%}%>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ REPORTS ══════════ -->
+<%}else if(page==='reports'){%>
+<div style="display:flex;gap:8px;margin-bottom:14px;" class="no-print">
+  <button class="btn btn-primary btn-sm" onclick="openModal('printModal')"><i class="fa-solid fa-print"></i> Print Report</button>
+  <button class="btn btn-ghost btn-sm" onclick="exportCSV()"><i class="fa-solid fa-download"></i> Export CSV</button>
+</div>
+<div class="kpi-grid">
+  <div class="kpi kc-teal"><div class="kpi-icon">📋</div><div class="kpi-label">Total</div><div class="kpi-val"><%=fmtNum(total_documents)%></div></div>
+  <div class="kpi kc-green"><div class="kpi-icon">✅</div><div class="kpi-label">Approved</div><div class="kpi-val"><%=fmtNum(approved_count)%></div></div>
+  <div class="kpi kc-amber"><div class="kpi-icon">🔍</div><div class="kpi-label">Under Review</div><div class="kpi-val"><%=fmtNum(review_count)%></div></div>
+  <div class="kpi kc-red"><div class="kpi-icon">⚠️</div><div class="kpi-label">Overdue</div><div class="kpi-val"><%=fmtNum(overdue_count)%></div></div>
+  <div class="kpi kc-pink"><div class="kpi-icon">🔄</div><div class="kpi-label">R & R</div><div class="kpi-val"><%=fmtNum(rr_count)%></div></div>
+  <div class="kpi kc-purple"><div class="kpi-icon">📊</div><div class="kpi-label">Approval Rate</div><div class="kpi-val"><%=approval_rate%>%</div></div>
+</div>
+<div class="card">
+  <div class="card-header"><div class="card-title">Document Type Report with Approval Rate</div></div>
+  <div class="tbl-wrap">
+    <table class="dcs" id="registerTable">
+      <thead><tr>
+        <th>Doc Type</th>
+        <%(statuses||[]).forEach(s=>{%><th><%=s%></th><%})%>
+        <th>Total</th><th>Approved %</th>
+      </tr></thead>
+      <tbody>
+      <%(doc_types||[]).forEach(type=>{%>
+      <%const td=(documents||[]).filter(d=>d.type===type);const tt=td.length;const tap=td.filter(d=>d.status==='Approved').length;const tr2=tt?Math.round(tap/tt*100):0;%>
+      <tr>
+        <td><span class="chip"><%=type%></span></td>
+        <%(statuses||[]).forEach(s=>{const v=td.filter(d=>d.status===s).length;%><td style="text-align:center;color:<%=v?sHex(s):'#d1d5db'%>;font-weight:<%=v?700:400%>;"><%=v||'—'%></td><%})%>
+        <td style="text-align:center;font-weight:800;"><%=tt%></td>
+        <td style="min-width:120px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="prog-bar" style="flex:1;"><div class="prog-fill" style="width:<%=tr2%>%;background:<%=tr2>=80?'#16a34a':tr2>=50?'#d97706':'#dc2626'%>;"></div></div>
+            <span style="font-size:11px;font-weight:700;color:<%=tr2>=80?'#16a34a':tr2>=50?'#d97706':'#dc2626'%>;"><%=tr2%>%</span>
+          </div>
+        </td>
+      </tr>
+      <%})%>
+      </tbody>
+    </table>
+  </div>
+</div>
+<%if(Object.keys(matrix||{}).length){%>
+<div class="card">
+  <div class="card-header"><div class="card-title">Discipline Analysis by Document Type</div></div>
+  <div class="disc-grid">
+  <%Object.keys(matrix||{}).sort().forEach(type=>{const discMap=matrix[type]||{};const discs=Object.keys(discMap).sort();const allSt2=statuses||[];%>
+  <div class="disc-card">
+    <div class="disc-card-hdr"><span class="disc-card-type"><%=type%></span><span class="disc-card-sub">Discipline Breakdown</span></div>
+    <table class="disc-tbl">
+      <thead><tr><th>Discipline</th><%allSt2.slice(0,4).forEach(s=>{%><th><%=s.length>7?s.slice(0,6)+'…':s%></th><%})%><th>Total</th><th>Rate</th></tr></thead>
+      <tbody>
+      <%let gTotal=0;discs.forEach(disc=>{const sm=discMap[disc]||{};const rowTot=Object.values(sm).reduce((a,b)=>a+b,0);gTotal+=rowTot;const apr=sm['Approved']||0;const rate2=rowTot?Math.round(apr/rowTot*100):0;%>
+      <tr>
+        <td><%=disc%></td>
+        <%allSt2.slice(0,4).forEach(s=>{const v=sm[s]||0;%><td style="text-align:center;color:<%=v?sHex(s):'#d1d5db'%>;"><%=v||'—'%></td><%})%>
+        <td style="text-align:center;font-weight:700;"><%=rowTot%></td>
+        <td><span style="font-size:10px;font-weight:700;color:<%=rate2>=80?'#16a34a':rate2>=50?'#d97706':'#dc2626'%>;"><%=rate2%>%</span></td>
+      </tr>
+      <%});%>
+      <tr class="dtr"><td>Total</td><%allSt2.slice(0,4).forEach(s=>{const gv=Object.values(discMap).reduce((a,dm)=>a+(dm[s]||0),0);%><td style="text-align:center;"><%=gv||'—'%></td><%})%><td style="text-align:center;"><%=gTotal%></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <%});%>
+  </div>
+</div>
+<%}%>
+<%if(overdue_docs&&overdue_docs.length){%>
+<div class="card">
+  <div class="card-header"><div class="card-title" style="color:#dc2626;">⚠️ Overdue Documents (<%=overdue_docs.length%>)</div></div>
+  <div class="tbl-wrap">
+    <table class="dcs">
+      <thead><tr><th>Doc Number</th><th>Type</th><th>Title</th><th>Discipline</th><th>Status</th><th>Contractor</th><th>Due Date</th><th>Days Overdue</th></tr></thead>
+      <tbody>
+      <%overdue_docs.forEach(d=>{%>
+      <tr>
+        <td><strong><%=d.doc_number%></strong></td><td><span class="chip"><%=d.type%></span></td>
+        <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%=d.title%></td>
+        <td><%=d.discipline||'—'%></td><td><%- sPill(d.status) %></td><td><%=d.contractor||'—'%></td>
+        <td><%=fmtDate(d.due_date)%></td><td class="days-overdue"><%=d.days_open%></td>
+      </tr>
+      <%})%>
+      </tbody>
+    </table>
+  </div>
+</div>
+<%}%>
+
+<!-- ══════════ MANAGE USERS ══════════ -->
+<%}else if(page==='manage_users'){%>
+<div style="display:flex;justify-content:flex-end;margin-bottom:12px;" class="no-print">
+  <button class="btn btn-primary" onclick="openModal('addUserModal')"><i class="fa-solid fa-user-plus"></i> Add User</button>
+</div>
+<div class="card">
+  <div class="tbl-wrap">
+    <table class="dcs">
+      <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Company / Dept</th><th>Phone</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
+      <tbody>
+      <%if(users&&users.length){users.forEach(u=>{%>
+      <tr>
+        <td><div style="display:flex;align-items:center;gap:8px;"><img src="https://ui-avatars.com/api/?name=<%=encodeURIComponent(u.full_name)%>&background=<%=PC.replace('#','')%>&color=fff&size=60" style="width:30px;height:30px;border-radius:7px;"/><strong style="font-size:12px;"><%=u.full_name%></strong></div></td>
+        <td style="font-size:12px;"><%=u.email%></td>
+        <td><%- roleBadge(u.role) %></td>
+        <td style="font-size:11px;"><%=(u.company||'')+(u.department?' / '+u.department:'')%></td>
+        <td style="font-size:11px;"><%=u.phone||'—'%></td>
+        <td><span class="pill <%=u.is_active?'pill-green':'pill-grey'%>"><%=u.is_active?'Active':'Inactive'%></span></td>
+        <td style="font-size:11px;"><%=u.last_login?fmtDate(u.last_login):'Never'%></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-icon btn-ghost" onclick="openEditUser('<%=u._id%>','<%=u.full_name%>','<%=u.email%>','<%=u.username||''%>','<%=u.company||''%>','<%=u.phone||''%>','<%=u.department||''%>','<%=u.role%>','<%=u.is_active%>')" title="Edit"><i class="fa-solid fa-pen" style="color:var(--pc);"></i></button>
+          <button class="btn btn-icon btn-ghost" onclick="openResetPw('<%=u._id%>','<%=u.full_name%>')" title="Reset Password"><i class="fa-solid fa-key" style="color:#d97706;"></i></button>
+          <%if(String(u._id)!==String(user._id)){%><a href="/app?page=manage_users&delete=1&table=users&id=<%=u._id%>" class="btn btn-icon btn-ghost" onclick="return confirm('Delete <%=u.full_name%>?')"><i class="fa-solid fa-trash" style="color:#dc2626;"></i></a><%}%>
+        </td>
+      </tr>
+      <%})}else{%><tr class="no-data"><td colspan="8">No users found.</td></tr><%}%>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Add New User</h3><button class="modal-close" onclick="closeModal('addUserModal')">✕</button></div>
+    <form method="POST" action="/app?page=manage_users">
+      <input type="hidden" name="action" value="add_user"/>
+      <div class="modal-body">
+        <div class="g2"><div class="form-group"><label class="form-label">Full Name *</label><input type="text" name="full_name" class="form-control" required/></div><div class="form-group"><label class="form-label">Email *</label><input type="email" name="email" class="form-control" required/></div></div>
+        <div class="g2"><div class="form-group"><label class="form-label">Username</label><input type="text" name="username" class="form-control" placeholder="Optional"/></div><div class="form-group"><label class="form-label">Password *</label><input type="text" name="password" class="form-control" value="Welcome@123" required/></div></div>
+        <div class="g2">
+          <div class="form-group"><label class="form-label">Role *</label>
+            <select name="role" class="form-control" required>
+              <option value="document_controller">Document Controller</option>
+              <option value="reviewer">Reviewer</option>
+              <option value="viewer">Viewer</option>
+              <option value="contractor">Contractor</option>
+              <option value="admin">Admin</option>
+              <%if(user.role==='super_admin'){%><option value="super_admin">Super Admin</option><%}%>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Company</label><input type="text" name="company" class="form-control"/></div>
+        </div>
+        <div class="g2"><div class="form-group"><label class="form-label">Department</label><input type="text" name="department" class="form-control"/></div><div class="form-group"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control"/></div></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('addUserModal')">Cancel</button><button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-user-plus"></i> Add User</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Edit User</h3><button class="modal-close" onclick="closeModal('editUserModal')">✕</button></div>
+    <form method="POST" action="/app?page=manage_users">
+      <input type="hidden" name="action" value="update_user"/>
+      <input type="hidden" name="id" id="editUserId"/>
+      <div class="modal-body">
+        <div class="g2"><div class="form-group"><label class="form-label">Full Name</label><input type="text" name="full_name" id="euName" class="form-control" required/></div><div class="form-group"><label class="form-label">Email</label><input type="email" name="email" id="euEmail" class="form-control" required/></div></div>
+        <div class="g2">
+          <div class="form-group"><label class="form-label">Username</label><input type="text" name="username" id="euUsername" class="form-control"/></div>
+          <div class="form-group"><label class="form-label">Role</label>
+            <select name="role" id="euRole" class="form-control">
+              <option value="document_controller">Document Controller</option><option value="reviewer">Reviewer</option>
+              <option value="viewer">Viewer</option><option value="contractor">Contractor</option><option value="admin">Admin</option>
+              <%if(user.role==='super_admin'){%><option value="super_admin">Super Admin</option><%}%>
+            </select>
+          </div>
+        </div>
+        <div class="g2"><div class="form-group"><label class="form-label">Company</label><input type="text" name="company" id="euCompany" class="form-control"/></div><div class="form-group"><label class="form-label">Department</label><input type="text" name="department" id="euDept" class="form-control"/></div></div>
+        <div class="g2"><div class="form-group"><label class="form-label">Phone</label><input type="text" name="phone" id="euPhone" class="form-control"/></div><div class="form-group"><label class="form-label">Account Status</label><select name="is_active" id="euActive" class="form-control"><option value="true">Active</option><option value="false">Inactive</option></select></div></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('editUserModal')">Cancel</button><button type="submit" class="btn btn-primary btn-sm">Save Changes</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="resetPwModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-hdr"><h3>Reset Password</h3><button class="modal-close" onclick="closeModal('resetPwModal')">✕</button></div>
+    <form method="POST" action="/app?page=manage_users">
+      <input type="hidden" name="action" value="reset_user_password"/>
+      <input type="hidden" name="user_id" id="rpUserId"/>
+      <div class="modal-body">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Resetting password for: <strong id="rpUserName"></strong></div>
+        <div class="form-group"><label class="form-label">New Password *</label><input type="text" name="new_password" class="form-control" value="Welcome@123" required/></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">The user must log in with this new password immediately.</div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('resetPwModal')">Cancel</button><button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-key"></i> Reset Password</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════ NOTIFICATIONS ══════════ -->
+<%}else if(page==='notifications'){%>
+<div class="g-2">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Send Notification</div></div>
+    <form method="POST" action="/app?page=notifications">
+      <input type="hidden" name="action" value="send_notification"/>
+      <div class="form-group"><label class="form-label">Audience</label>
+        <select name="type" class="form-control">
+          <option value="all">All Users</option><option value="document_controller">Document Controllers</option>
+          <option value="reviewer">Reviewers</option><option value="contractor">Contractors</option><option value="viewer">Viewers</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Message *</label><textarea name="message" class="form-control" rows="5" required></textarea></div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-bell"></i> Send</button>
+    </form>
+  </div>
+  <div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Leave Requests</div></div>
+      <%if(leaves&&leaves.length){%>
+      <div class="tbl-wrap">
+        <table class="dcs">
+          <thead><tr><th>User</th><th>Role</th><th>Date</th><th>Message</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+          <%leaves.forEach(l=>{%>
+          <tr>
+            <td><strong style="font-size:12px;"><%=l.user_id?l.user_id.full_name:'—'%></strong></td>
+            <td><%- roleBadge(l.role||'viewer') %></td>
+            <td style="font-size:11px;"><%=l.date||'—'%></td>
+            <td style="font-size:11px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%=l.message%></td>
+            <td><%- sPill(l.status) %></td>
+            <td style="white-space:nowrap;">
+              <%if(l.status==='Pending'){%>
+              <form method="POST" action="/app?page=notifications" style="display:inline;"><input type="hidden" name="action" value="update_leave"/><input type="hidden" name="leave_id" value="<%=l._id%>"/><input type="hidden" name="status" value="Approved"/><button type="submit" class="btn btn-success btn-sm" style="padding:3px 10px;">✓</button></form>
+              <form method="POST" action="/app?page=notifications" style="display:inline;"><input type="hidden" name="action" value="update_leave"/><input type="hidden" name="leave_id" value="<%=l._id%>"/><input type="hidden" name="status" value="Rejected"/><button type="submit" class="btn btn-danger btn-sm" style="padding:3px 10px;">✕</button></form>
+              <%}%>
+            </td>
+          </tr>
+          <%})%>
+          </tbody>
+        </table>
+      </div>
+      <%}else{%><p style="color:var(--muted);font-size:13px;">No leave requests.</p><%}%>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Sent Notifications</div></div>
+      <%if(notifications&&notifications.length){notifications.slice(0,10).forEach(n=>{%>
+      <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <i class="fa-solid fa-bell" style="color:var(--pc);margin-top:2px;flex-shrink:0;"></i>
+        <div style="flex:1;"><div style="font-size:13px;"><%=n.message%></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">To: <%=n.type%> &nbsp;·&nbsp; <%=fmtDate(n.created_at)%></div></div>
+        <a href="/app?page=notifications&delete=1&table=notifications&id=<%=n._id%>" onclick="return confirm('Delete?')" style="color:#dc2626;font-size:13px;text-decoration:none;"><i class="fa-solid fa-trash"></i></a>
+      </div>
+      <%})}else{%><p style="color:var(--muted);font-size:13px;">No notifications sent.</p><%}%>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MY INBOX ══════════ -->
+<%}else if(page==='my_notifications'){%>
+<div class="card">
+  <div class="card-header"><div class="card-title">My Inbox</div><span class="card-badge"><%=(notifs||[]).length%> messages</span></div>
+  <%if(notifs&&notifs.length){notifs.forEach(n=>{%>
+  <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+    <div style="width:38px;height:38px;background:#f0f9f0;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-bell" style="color:var(--pc);"></i></div>
+    <div><div style="font-size:13px;font-weight:500;"><%=n.message%></div><div style="font-size:11px;color:var(--muted);margin-top:3px;"><%=fmtDate(n.created_at)%></div></div>
+  </div>
+  <%})}else{%>
+  <div style="text-align:center;padding:50px;color:var(--muted);"><i class="fa-solid fa-bell-slash" style="font-size:36px;display:block;margin-bottom:12px;"></i>No notifications yet.</div>
+  <%}%>
+</div>
+
+<!-- ══════════ APPLY LEAVE ══════════ -->
+<%}else if(page==='apply_leave'){%>
+<div class="g-2">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Submit Leave Request</div></div>
+    <form method="POST" action="/app?page=apply_leave">
+      <input type="hidden" name="action" value="apply_leave"/>
+      <div class="form-group"><label class="form-label">Date *</label><input type="date" name="date" class="form-control" required/></div>
+      <div class="form-group"><label class="form-label">Reason *</label><textarea name="message" class="form-control" rows="6" required placeholder="Describe the reason for your leave request…"></textarea></div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-calendar-check"></i> Submit</button>
+    </form>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">My Leave History</div></div>
+    <%if(my_leaves&&my_leaves.length){%>
+    <div class="tbl-wrap"><table class="dcs">
+      <thead><tr><th>Date</th><th>Reason</th><th>Status</th><th>Applied</th></tr></thead>
+      <tbody><%my_leaves.forEach(l=>{%><tr><td><%=l.date||'—'%></td><td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%=l.message%></td><td><%- sPill(l.status) %></td><td style="font-size:11px;"><%=fmtDate(l.created_at)%></td></tr><%})%></tbody>
+    </table></div>
+    <%}else{%><p style="color:var(--muted);font-size:13px;">No leave requests yet.</p><%}%>
+  </div>
+</div>
+
+<!-- ══════════ FEEDBACK ══════════ -->
+<%}else if(page==='feedback'){%>
+<%if(['viewer','contractor'].includes(user.role)){%>
+<div class="card" style="max-width:600px;">
+  <div class="card-header"><div class="card-title">Submit Feedback</div></div>
+  <form method="POST" action="/app?page=feedback"><input type="hidden" name="action" value="send_feedback"/>
+    <div class="form-group"><label class="form-label">Your Feedback</label><textarea name="message" class="form-control" rows="7" required placeholder="Share your comments, issues, or suggestions…"></textarea></div>
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-comment-dots"></i> Submit</button>
+  </form>
+</div>
+<%}else{%>
+<div class="card">
+  <div class="card-header"><div class="card-title">All Feedback</div></div>
+  <%if(feedbacks&&feedbacks.length){feedbacks.forEach(f=>{%>
+  <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);">
+    <img src="https://ui-avatars.com/api/?name=<%=encodeURIComponent(f.user_id?f.user_id.full_name:'U')%>&background=<%=PC.replace('#','')%>&color=fff&size=60" style="width:34px;height:34px;border-radius:7px;flex-shrink:0;"/>
+    <div style="flex:1;"><div style="font-size:12px;font-weight:700;margin-bottom:4px;"><%=f.user_id?f.user_id.full_name:'Unknown'%> <%- roleBadge(f.user_id?f.user_id.role:'viewer') %></div><div style="font-size:13px;"><%=f.message%></div><div style="font-size:10px;color:var(--muted);margin-top:3px;"><%=fmtDate(f.created_at)%></div></div>
+  </div>
+  <%})}else{%><p style="color:var(--muted);font-size:13px;">No feedback yet.</p><%}%>
+</div>
+<%}%>
+
+<!-- ══════════ SETTINGS ══════════ -->
+<%}else if(page==='settings'){%>
+<div class="tab-bar no-print">
+  <div class="tab active" onclick="switchTab(this,'tabProject')">Project Info</div>
+  <div class="tab" onclick="switchTab(this,'tabLogos')">Logos & Branding</div>
+  <div class="tab" onclick="switchTab(this,'tabColors')">Theme Colors</div>
+  <div class="tab" onclick="switchTab(this,'tabPassword')">Change Password</div>
+  <%if(user.role==='super_admin'){%><div class="tab" onclick="switchTab(this,'tabIdentity')">Change Login</div><%}%>
+</div>
+
+<div class="tab-pane active" id="tabProject">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Project & Company Information</div></div>
+    <form method="POST" action="/app?page=settings">
+      <input type="hidden" name="action" value="save_settings"/>
+      <input type="hidden" name="primary_color" value="<%=settings.primary_color%>"/>
+      <input type="hidden" name="accent_color" value="<%=settings.accent_color%>"/>
+      <div class="g3">
+        <div class="form-group"><label class="form-label">Project Name</label><input type="text" name="project_name" class="form-control" value="<%=settings.project_name%>"/></div>
+        <div class="form-group"><label class="form-label">Project Number</label><input type="text" name="project_number" class="form-control" value="<%=settings.project_number%>"/></div>
+        <div class="form-group"><label class="form-label">Contract Number</label><input type="text" name="contract_number" class="form-control" value="<%=settings.contract_number%>"/></div>
+      </div>
+      <div class="g4">
+        <div class="form-group"><label class="form-label">Company Name</label><input type="text" name="company_name" class="form-control" value="<%=settings.company_name%>"/></div>
+        <div class="form-group"><label class="form-label">Client Name</label><input type="text" name="client_name" class="form-control" value="<%=settings.client_name%>"/></div>
+        <div class="form-group"><label class="form-label">Consultant Name</label><input type="text" name="consultant_name" class="form-control" value="<%=settings.consultant_name%>"/></div>
+        <div class="form-group"><label class="form-label">Contractor Name</label><input type="text" name="contractor_name" class="form-control" value="<%=settings.contractor_name%>"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Prepared By (shown on reports)</label><input type="text" name="prepared_by" class="form-control" value="<%=settings.prepared_by||''%>"/></div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+    </form>
+  </div>
+</div>
+
+<div class="tab-pane" id="tabLogos">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Upload Logos</div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:20px;">
+      <%[['company_logo','Company Logo'],['client_logo','Client Logo'],['consultant_logo','Consultant Logo'],['contractor_logo','Contractor Logo'],['project_logo','Project Logo']].forEach(pair=>{const field=pair[0],label=pair[1];%>
+      <div style="text-align:center;">
+        <div class="logo-box" onclick="triggerLogoUpload('<%=field%>')">
+          <%const lf=settings[field];%>
+          <%if(lf){%><img src="/uploads/<%=lf%>" alt="logo"/><%}else{%><div class="logo-hint"><i class="fa-solid fa-image" style="font-size:20px;margin-bottom:4px;color:var(--muted);display:block;"></i><%=label%></div><%}%>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;"><%=label%></div>
+        <input type="file" id="logoInput_<%=field%>" style="display:none;" accept="image/*" onchange="uploadLogo('<%=field%>',this)"/>
+      </div>
+      <%});%>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:16px;"><i class="fa-solid fa-info-circle"></i> Logos appear in reports and printed documents. Recommended: PNG, transparent background, min 200×200px.</div>
+  </div>
+</div>
+
+<div class="tab-pane" id="tabColors">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Theme Customization</div></div>
+    <form method="POST" action="/app?page=settings">
+      <input type="hidden" name="action" value="save_settings"/>
+      <input type="hidden" name="project_name" value="<%=settings.project_name%>"/>
+      <input type="hidden" name="project_number" value="<%=settings.project_number%>"/>
+      <input type="hidden" name="contract_number" value="<%=settings.contract_number%>"/>
+      <input type="hidden" name="company_name" value="<%=settings.company_name%>"/>
+      <input type="hidden" name="client_name" value="<%=settings.client_name%>"/>
+      <input type="hidden" name="consultant_name" value="<%=settings.consultant_name%>"/>
+      <input type="hidden" name="contractor_name" value="<%=settings.contractor_name%>"/>
+      <input type="hidden" name="prepared_by" value="<%=settings.prepared_by%>"/>
+      <div class="g2">
+        <div class="form-group"><label class="form-label">Primary Color</label><div style="display:flex;gap:8px;align-items:center;"><input type="color" name="primary_color" value="<%=settings.primary_color||'#1a7a7a'%>" style="width:50px;height:38px;border-radius:7px;border:1.5px solid var(--border);cursor:pointer;padding:2px;"/><span style="font-size:13px;color:var(--muted);">Sidebar, buttons, KPI borders</span></div></div>
+        <div class="form-group"><label class="form-label">Accent Color</label><div style="display:flex;gap:8px;align-items:center;"><input type="color" name="accent_color" value="<%=settings.accent_color||'#23a6a6'%>" style="width:50px;height:38px;border-radius:7px;border:1.5px solid var(--border);cursor:pointer;padding:2px;"/><span style="font-size:13px;color:var(--muted);">Charts & highlights</span></div></div>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-palette"></i> Apply Theme</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px;">Colors apply immediately after saving.</p>
+    </form>
+  </div>
+</div>
+
+<div class="tab-pane" id="tabPassword">
+  <div class="card" style="max-width:480px;">
+    <div class="card-header"><div class="card-title">Change Password</div></div>
+    <form method="POST" action="/app?page=settings">
+      <input type="hidden" name="action" value="change_password"/>
+      <div class="form-group"><label class="form-label">Current Password *</label><input type="password" name="current_password" class="form-control" required/></div>
+      <div class="form-group"><label class="form-label">New Password *</label><input type="password" name="new_password" class="form-control" required minlength="8" placeholder="Min. 8 characters"/></div>
+      <div class="form-group"><label class="form-label">Confirm New Password *</label><input type="password" name="confirm_password" class="form-control" required minlength="8"/></div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-lock"></i> Change Password</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px;">You will be logged out after changing your password.</p>
+    </form>
+  </div>
+</div>
+
+<%if(user.role==='super_admin'){%>
+<div class="tab-pane" id="tabIdentity">
+  <div class="card" style="max-width:480px;">
+    <div class="card-header"><div class="card-title">Change Login Identifier</div></div>
+    <form method="POST" action="/app?page=settings" onsubmit="return confirm('This will log you out. Continue?')">
+      <input type="hidden" name="action" value="change_username"/>
+      <div class="form-group"><label class="form-label">New Email or Username</label><input type="text" name="new_identifier" class="form-control" required placeholder="Enter new email or username"/></div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-pen"></i> Update Login</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px;">You will be logged out after this change.</p>
+    </form>
+  </div>
+</div>
+<%}%>
+
+<%}%>
+<!-- END PAGE CONTENT -->
+
+<div style="text-align:center;padding:16px;font-size:11px;color:var(--muted);margin-top:8px;" class="no-print">
+  &copy; 2025 <%=settings.company_name%> &nbsp;·&nbsp; Document Control System &nbsp;·&nbsp; <%=settings.prepared_by||'Document Controller'%>
+</div>
+</div></div><!-- /content /main -->
+
 <script>
-const COLORS=['#0d9488','#6366f1','#d97706','#dc2626','#7c3aed','#0891b2','#16a34a','#f43f5e','#84cc16','#0ea5e9'];
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open');}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));});
+
+function switchTab(el,targetId){
+  el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(targetId).classList.add('active');
+}
+
+function openStatusModal(id,docNum,status){
+  document.getElementById('statusDocId').value=id;
+  document.getElementById('statusDocNum').value=docNum;
+  const sel=document.getElementById('statusSel');
+  if(sel){for(const o of sel.options){if(o.value===status){o.selected=true;break;}}}
+  openModal('statusModal');
+}
+
+function openEditUser(id,name,email,uname,company,phone,dept,role,active){
+  document.getElementById('editUserId').value=id;
+  document.getElementById('euName').value=name;
+  document.getElementById('euEmail').value=email;
+  document.getElementById('euUsername').value=uname;
+  document.getElementById('euCompany').value=company;
+  document.getElementById('euPhone').value=phone;
+  document.getElementById('euDept').value=dept;
+  const rs=document.getElementById('euRole');
+  if(rs)for(const o of rs.options){if(o.value===role){o.selected=true;break;}}
+  const as=document.getElementById('euActive');
+  if(as)for(const o of as.options){if(o.value===active){o.selected=true;break;}}
+  openModal('editUserModal');
+}
+
+function openResetPw(id,name){
+  document.getElementById('rpUserId').value=id;
+  document.getElementById('rpUserName').textContent=name;
+  openModal('resetPwModal');
+}
+
+function doPrint(){
+  const orient=document.querySelector('input[name=pOrient]:checked').value;
+  const size=document.getElementById('pSize').value;
+  let sty=document.getElementById('printOrientStyle');
+  if(!sty){sty=document.createElement('style');sty.id='printOrientStyle';document.head.appendChild(sty);}
+  sty.textContent='@page{size:'+size+' '+orient+';margin:10mm;}';
+  closeModal('printModal');
+  setTimeout(window.print,150);
+}
+
 function exportCSV(){
-  const table=document.getElementById('registerTable'); if(!table) return alert('No table');
-  let csv=[]; for(const row of table.rows){csv.push([...row.cells].map(c=>'"'+c.innerText.replace(/"/g,'""').trim()+'"').join(','));}
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv.join('\n')],{type:'text/csv'}));
-  a.download='register.csv'; a.click();
+  const tbl=document.getElementById('registerTable');
+  if(!tbl){alert('No table to export.');return;}
+  let csv=[];
+  for(const row of tbl.rows){
+    const cells=[...row.cells].map(c=>'"'+c.innerText.replace(/"/g,'""').replace(/\n/g,' ').trim()+'"');
+    csv.push(cells.join(','));
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv.join('\n')],{type:'text/csv'}));
+  a.download='DCS_Export_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
 }
-function openReset(id,name){
-  document.getElementById('resetId').value=id;
-  document.getElementById('resetName').textContent='Reset password for '+name;
-  new bootstrap.Modal(document.getElementById('resetModal')).show();
+
+function doSearch(val){
+  if(!val.trim())return;
+  window.location.href='/app?page=document_register&search='+encodeURIComponent(val.trim());
 }
-async function importExcel(){
-  const f=document.getElementById('excelFile')?.files?.[0];
-  if(!f) return alert('Choose an Excel file');
-  const fd=new FormData(); fd.append('excel_file',f);
-  const el=document.getElementById('importResult');
-  if(el) el.textContent='Importing…';
+
+const importFile=document.getElementById('importFile');
+const importBtn=document.getElementById('importBtn');
+const importResult=document.getElementById('importResult');
+if(importFile){
+  importFile.addEventListener('change',()=>{
+    if(importBtn)importBtn.disabled=!importFile.files.length;
+    if(importFile.files.length&&importBtn)importBtn.innerHTML='<i class="fa-solid fa-database"></i> Import: '+importFile.files[0].name;
+  });
+}
+async function doImport(){
+  if(!importFile||!importFile.files.length)return;
+  if(importBtn){importBtn.disabled=true;importBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Importing…';}
+  if(importResult){importResult.style.display='block';importResult.textContent='Processing…';importResult.style.color='#d97706';}
   try{
-    const r=await fetch('/import-excel',{method:'POST',body:fd});
-    const d=await r.json();
-    if(d.error){ if(el) el.textContent=d.error; alert(d.error); }
-    else { if(el) el.textContent=`Imported ${d.imported}, skipped ${d.skipped}`; setTimeout(()=>location.reload(),1200); }
-  }catch(e){ alert(e.message); }
+    const text=await importFile.files[0].text();
+    const json=JSON.parse(text);
+    const res=await fetch('/import-json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(json)});
+    const d=await res.json();
+    if(d.error){
+      if(importResult){importResult.textContent='❌ '+d.error;importResult.style.color='#dc2626';}
+    }else{
+      if(importResult){importResult.textContent='✅ Imported '+d.imported+' documents, '+d.skipped+' skipped.';importResult.style.color='#16a34a';}
+      setTimeout(()=>location.reload(),2000);
+    }
+  }catch(e){
+    if(importResult){importResult.textContent='❌ Error: '+e.message;importResult.style.color='#dc2626';}
+  }
+  if(importBtn){importBtn.disabled=false;importBtn.innerHTML='<i class="fa-solid fa-database"></i> Import';}
 }
-<% if(page==='dashboard'){ %>
+
+function triggerLogoUpload(field){document.getElementById('logoInput_'+field).click();}
+async function uploadLogo(field,input){
+  if(!input.files.length)return;
+  const fd=new FormData();fd.append('logo',input.files[0]);fd.append('field',field);
+  const res=await fetch('/upload-logo',{method:'POST',body:fd});
+  const d=await res.json();
+  if(d.ok){location.reload();}else{alert('Upload failed: '+(d.error||'Unknown error'));}
+}
+
+<%if(page==='dashboard'){%>
 (async()=>{
   try{
-    const d=await (await fetch('/api/stats')).json();
-    const tL=Object.keys(d.by_type||{}), tD=tL.map(k=>d.by_type[k]);
-    const sL=Object.keys(d.by_status||{}), sD=sL.map(k=>d.by_status[k]);
-    const dL=Object.keys(d.by_discipline||{}), dD=dL.map(k=>d.by_discipline[k]);
-    const mL=(d.monthly_trend||[]).map(x=>x.label), mD=(d.monthly_trend||[]).map(x=>x.count);
-    if(document.getElementById('chartType')&&tL.length) new Chart(document.getElementById('chartType'),{type:'bar',data:{labels:tL,datasets:[{data:tD,backgroundColor:tL.map((_,i)=>COLORS[i%COLORS.length]),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-    if(document.getElementById('chartStatus')&&sL.length) new Chart(document.getElementById('chartStatus'),{type:'doughnut',data:{labels:sL,datasets:[{data:sD,backgroundColor:sL.map((_,i)=>COLORS[i%COLORS.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}}}});
-    if(document.getElementById('chartDisc')&&dL.length) new Chart(document.getElementById('chartDisc'),{type:'pie',data:{labels:dL,datasets:[{data:dD,backgroundColor:dL.map((_,i)=>COLORS[i%COLORS.length])}]},options:{responsive:true,maintainAspectRatio:false}});
-    if(document.getElementById('chartMonth')) new Chart(document.getElementById('chartMonth'),{type:'line',data:{labels:mL.length?mL:['—'],datasets:[{data:mD.length?mD:[0],borderColor:'#0d9488',backgroundColor:'rgba(13,148,136,.15)',fill:true,tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-  }catch(e){console.error(e)}
+    const r=await fetch('/api/stats');
+    const d=await r.json();
+    const PAL=['#1a7a7a','#6366f1','#f59e0b','#ef4444','#8b5cf6','#f97316','#34d399','#60a5fa','#ec4899','#84cc16','#06b6d4','#f43f5e','#a78bfa','#fb923c'];
+    function sc(s){
+      const m={'Approved':'#16a34a','Under Review':'#d97706','Open':'#0f766e','Pending':'#ea580c','Rejected':'#dc2626','Closed':'#6b7280','Revise & Resubmit':'#db2777','Submitted':'#1e40af','Returned':'#4f46e5'};
+      if(m[s])return m[s];
+      let h=0;for(const c of s)h+=c.charCodeAt(0);
+      return PAL[h%PAL.length];
+    }
+    const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+
+    const tl=Object.keys(d.by_type||{}).sort((a,b)=>d.by_type[b]-d.by_type[a]);
+    if(tl.length){
+      new Chart(document.getElementById('chartType'),{
+        type:'bar',
+        data:{labels:tl,datasets:[{data:tl.map(k=>d.by_type[k]),backgroundColor:tl.map((x,i)=>PAL[i%PAL.length]),borderRadius:5}]},
+        options:Object.assign({},opts,{scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{ticks:{font:{size:11}}}}})
+      });
+    }
+    const sl=Object.keys(d.by_status||{});
+    if(sl.length){
+      new Chart(document.getElementById('chartStatus'),{
+        type:'doughnut',
+        data:{labels:sl,datasets:[{data:sl.map(k=>d.by_status[k]),backgroundColor:sl.map(s=>sc(s)),borderWidth:2,borderColor:'#fff'}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:12}}}}
+      });
+    }
+    const ml=(d.monthly||[]).map(m=>m._id.year+'-'+String(m._id.month).padStart(2,'0'));
+    const mv=(d.monthly||[]).map(m=>m.count);
+    if(ml.length){
+      new Chart(document.getElementById('chartMonthly'),{
+        type:'line',
+        data:{labels:ml.map(m=>{const p=m.split('-');return new Date(p[0],p[1]-1).toLocaleString('en',{month:'short',year:'2-digit'});}),
+          datasets:[{data:mv,borderColor:'<%=PC%>',backgroundColor:'rgba(26,122,122,.08)',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'<%=AC%>'}]},
+        options:Object.assign({},opts,{scales:{y:{beginAtZero:true},x:{ticks:{font:{size:10}}}}})
+      });
+    }
+    const dl=Object.keys(d.by_discipline||{}).sort((a,b)=>d.by_discipline[b]-d.by_discipline[a]).slice(0,12);
+    if(dl.length){
+      new Chart(document.getElementById('chartDisc'),{
+        type:'bar',
+        data:{labels:dl,datasets:[{data:dl.map(k=>d.by_discipline[k]),backgroundColor:'<%=PC%>',borderRadius:4}]},
+        options:Object.assign({},opts,{indexAxis:'y',scales:{x:{beginAtZero:true},y:{ticks:{font:{size:10}}}}})
+      });
+    }
+  }catch(e){console.error('Chart error:',e);}
 })();
-<% } %>
+<%}%>
 </script>
 </body>
 </html>
